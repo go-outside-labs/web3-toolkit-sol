@@ -1,4 +1,4 @@
-## gas
+## gas optimization
 
 <br>
 
@@ -140,5 +140,6 @@ uint256 world; //good, cheap
 * [hardhat on gas optimization](https://medium.com/@thelasthash/%EF%B8%8F-gas-optimization-with-hardhat-1e553eaea311)
 * [resources for gas optimization](https://github.com/kadenzipfel/gas-optimizations)
 * [awesome solidity gas optimization](https://github.com/iskdrews/awesome-solidity-gas-optimization)
+* [mev-toolkit resources](https://github.com/go-outside-labs/mev-toolkit/tree/main/MEV_searchers/code_resources/gas_optimization)
 
 
