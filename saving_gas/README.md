@@ -141,5 +141,6 @@ uint256 world; //good, cheap
 * [resources for gas optimization](https://github.com/kadenzipfel/gas-optimizations)
 * [awesome solidity gas optimization](https://github.com/iskdrews/awesome-solidity-gas-optimization)
 * [mev-toolkit resources](https://github.com/go-outside-labs/mev-toolkit/tree/main/MEV_searchers/code_resources/gas_optimization)
+* [how gas optimization can streamline your smart contracts](https://medium.com/@ayomilk1/maximizing-efficiency-how-gas-optimization-can-streamline-your-smart-contracts-4bafcc6bf321)
 
 
