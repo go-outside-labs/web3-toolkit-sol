@@ -128,6 +128,21 @@ uint256 world; //good, cheap
 <br>
 
 
+#### [i ++](https://twitter.com/high_byte/status/1647080662094995457?s=20)
+
+* instead of i++ you should write the ++ above the i.
+
+```
+while (true)
+    uint256 i = 0;
+     ++
+    i
+ ;
+```
+
+<br>
+
+
 ---
 
 ### resources 
