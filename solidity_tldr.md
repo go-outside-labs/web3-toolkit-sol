@@ -1,53 +1,153 @@
-
 ## solidity tl;dr
 
 <br>
 
-### ethereum contracts
+#### *a smart contract is a collection of code (functions) and data (state) on the ethereum blockchain.*
 
 <br>
 
-* until [account abstraction](https://github.com/go-outside-labs/mev-toolkit/tree/main/MEV_by_chains/MEV_on_Ethereum/account_abstraction) becomes a thing, there are two types of accounts, which are identified by an address of **160-bit length** (rightmost 160 bits of the **Keccak hash** of the RLP encoding of the structure with the sender and the nonce), and contain a **balance** (in wei), a **nonce** (number of tx made by the account), a **bytecode** (hash), and **stored data** (keccak hash of the root note od the storage trie). while **external accounts have a private key** and their code and storage are empty, **contract accounts store their bytecode** (and merkle root hash of the entire state tree).
+---
+
+### accounts
 
 <br>
 
-<img width="516" src="https://user-images.githubusercontent.com/1130416/219830838-01ce01c8-e818-403e-8a7a-2dbcff68a7bc.png">
+* until [account abstraction](https://github.com/go-outside-labs/mev-toolkit/tree/main/MEV_by_chains/MEV_on_Ethereum/account_abstraction) becomes a thing, there are two types of accounts in ethereum: **external accounts** (controlled by a pub-priv key pair) and **contract accounts** (controlled by code stored with the account).
+* these accounts are identified by:
+	* an address of **160-bit length** (rightmost 160 bits of the **keccak hash** of the RLP encoding of the structure with the sender and the nonce),
+ 	* a **balance**: in wei, where `1 ether` = `10**18 wei`
+  	* a **nonce**: number of tx made by the account)
+  	* a **bytecode**: hash
+  	* **stored data**: a key-value mapping 256-bit words to 256-bit words (i.e., keccak hash of the root note of the storage trie)
+* while **external accounts have a private key** and their code and storage are empty, **contract accounts store their bytecode** (and merkle root hash of the entire state tree):
 
+<br>
+
+<img width="500" src="https://user-images.githubusercontent.com/1130416/219830838-01ce01c8-e818-403e-8a7a-2dbcff68a7bc.png">
+
+<br>
+
+
+##### what is considered modifying state
+
+- writing to state variables
+- emitting events
+- creating other contracts
+- sending ether via calls
+- using selfdestruct
+- using low-level calls
+- calling any function not marked view or pure
+- using inline assembly that contains certain opcodes
+
+<br>
+
+----
+
+### transactions
+
+<br>
+
+* as a blockchain is a globally shared transactional database, a transaction is a message that is sent from one account to another.
+* anyone can create a transaction to change something in this database.
+* a transaction is always cryptographically signed by the sender (creator).
+* it can include binary data (payload) and ether.
+* if the target account contains code, that code is executed and the payload is provided as input data.
+* if the target account is not set (e.g., the transaction does not have a recipient or the recipient is set to `null`), the transaction creates a new contract. the adddres of that contract is not the zero address, but an address derived from the sender and its nonce (number of transactions sent).
+* the output data of this execution is stored as the code contract, i.e., to create a contract, you don't send the actual code of the contract, but instead a code that returns the code when executed.
+
+<br>
+
+----
+
+### contract creation
+
+<br>
+
+* the **creation of a contract** is a transaction where the **receiver address is empty** and its **data field contains compiled bytecode** (or calling `CREATE` opcode).
+* the data sent is executed as bytecode, initializing the state variables in storage and determining the body of the contract being created.
+* **contract memory** is a byte array, where data can be stored in 32 bytes (256 bit) or 1 byte (8 bit) chunks, reading in 32 bytes chunks (through `MSTORE`, `MLOAD`, `MSTORE8`).
+
+<br>
+
+<img width="400" src="https://user-images.githubusercontent.com/1130416/219829883-c94c0a80-1101-462e-99fa-afbf7feb2b57.png">
 
 
 <br>
 
-* the **creation of a contract** is a transaction where the **receiver address is empty** and its **data field contains compiled bytecode** (or calling `CREATE` opcode. the data sent is executed as bytecode, initializing the state variables in storage and determining the body of the contract being created. **contract memory** is a byte array, where data can be stored in 32 bytes (256 bit) or 1 byte (8 bit) chunks, reading in 32 bytes chunks (through `MSTORE`, `MLOAD`, `MSTORE8`).
+----
+
+### message calls
 
 <br>
 
-<img width="516" src="https://user-images.githubusercontent.com/1130416/219829883-c94c0a80-1101-462e-99fa-afbf7feb2b57.png">
+* contracts can call other contracts or send ether to non-contract accounts by through **message calls** (`CALL` opcode).
+* they are similar to transactions, having a source, a target, data payload, ether, gas, and return data.
+* every transaction is actually a top-level message call which can create further messages calls.
+* a contract can decide how much of its remaining gas should be sent with the inner message call and how much it wants to retain.
+* every call has a **sender**, a **recipient**, a **payload** (data), a **value** (in wei), and some **gas**.
+* message calls are limited to a depth of `1024`, which means that for more complex operations, loops should be preferred over recursive calls.
+
+<br>
+
+#### delegatecall
+
+* a variant is `DELEGATECALL`, where target code is executed within the context of the calling contract, and `msg.sender` and `msg.value` do not change.
+* delegatecalls are identical to a message call apart from the code at the target address being executed in the context (at the address) of the calling contract.
+* the contract can dynamically load code (storage) from a different address at runtime, while current address and balance still refer to the calling contract.
+* when a contract is being created, the code is still empty. therefore, you should not call back into the contract under construction until the constuctor has finished executing.
 
 
 <br>
 
-* contracts can call contracts through **message calls** (`CALL` opcode). every call has a **sender**, a **recipient**, a **payload** (data), a **value** (in wei), and some **gas**. a variant is `DELEGATECALL`, where target code is executed within the context of the calling contract, and `msg.sender` and `msg.value` do not change (the contract can dynamically load code - storage - from a different address at runtime - while current address and balance still refer to the calling contract).
+----
+
+### the evm
+
+<br>
+
+* the evm is a stack machine (not a register machine), so that all computations are performed on the stack data area.
+* the stack has a maximum size of `1024` elements and contains words of `256` bits.
+* access to the stack is limited to the top end (topmost 16 elements to the top of the stack)
+
+
+<br>
+
+----
+
+### gas
+
+<br>
+
+* each transaction is charged with some gas that has to be paid for by the originator (`tx.origin`).
+* if the gas is used up at any point, an out-of-gas exception is triggered, ending execution and reverting all modifications made to the state in the current call frame.
+* since each block has a maximum amount of gas, it also limits the amount of work needed to validate a block.
+* the gas price is set by the originator of the transaction, who has to pay `gas_price * gas` upfront to the EVM executor. any gas left is refunded to the transaction originator. exceptions that revert changes do not refund gas.
+* 
 
 <br>
 
 ------
 
-### predefined global variables and functions
+### predefined global variables and opcodes
 
 <br>
 
-* when a contract is executed in the EVM, it has access to a small set of global objects: `block`, `msg`, and `tx` objects. in addition, solidity exposes a number of EVM opcodes as predefined functions:
+* when a contract is executed in the EVM, it has access to a small set of global objects: `block`, `msg`, and `tx` objects.
+* in addition, solidity exposes a [number of EVM opcodes](list of opcodes) as predefined functions.
+* all instructions operate on the basic data type, `256-bit` words or on slices of memory (and other byte arrays).
+* the usual arithmetic, bit, logical, and comparison operations are present, and conditional and unconditional jumps are possible.
 
 
 <br>
 
 ##### msg
 
-* `msg object`: the transaction that triggered the execution of the contract.
-* `msg.sender`: sender address of the transaction.
-* `msg.value`: ether sent with this call (in wei).
-* `msg.data`: data payload of this call into our contract.
-* `msg.sig`: first four bytes of the data payload, which is the function selector.
+* `msg` is a special global variable that contains properties that allow access to the blockchain:
+	* `msg object`: the transaction that triggered the execution of the contract.
+	* `msg.sender`: sender address of the transaction (i.e., always the address where the current function call come from).
+	* `msg.value`: ether sent with this call (in wei).
+	* `msg.data`: data payload of this call into our contract.
+	* `msg.sig`: first four bytes of the data payload, which is the function selector.
 
 <br>
 
@@ -69,11 +169,14 @@
 
 ##### address
 
-* `address.balance`: balance of the address, in wei. 
-* `address.transfer(__amount__)`: transfers the amount (in wei) to this address, throwing an exception on any error.
-* `address.send(__amount__)`: similar to transfer, only instead of throwing an exception, it returns false on error. WARNING: always check the return value of send.
-* `address.call(__payload__)`: low-level `CALL` function—can construct an arbitrary message call with a data payload. Returns false on error. WARNING: unsafe.
-* `address.delegatecall(__payload__)`: low-level `DELEGATECALL` function, like `callcode(...)` but with the full msg context seen by the current contract. Returns false on error. WARNING: advanced use only!
+* a state variable can be declared as the type `address`, a 160-bit value that does not allow arithmetic operations.
+* here are its atrributes:
+
+	* `address.balance`: balance of the address, in wei. 
+	* `address.transfer(__amount__)`: transfers the amount (in wei) to this address, throwing an exception on any error.
+	* `address.send(__amount__)`: similar to transfer, only instead of throwing an exception, it returns false on error. WARNING: always check the return value of send.
+	* `address.call(__payload__)`: low-level `CALL` function—can construct an arbitrary message call with a data payload. Returns false on error. WARNING: unsafe.
+	* `address.delegatecall(__payload__)`: low-level `DELEGATECALL` function, like `callcode(...)` but with the full msg context seen by the current contract. Returns false on error. WARNING: advanced use only!
 
 
 <br>
@@ -87,22 +190,6 @@
 * `this`: address of the currently executing contract account.
 * [list of precompiled contracts](https://www.evm.codes/precompiled?fork=arrowGlacier)
 
-<br>
-
-##### what is considered modifying state
-
-- writing to state variables
-- emitting events
-- creating other contracts
-- sending ether via calls
-- using selfdestruct
-- using low-level calls
-- calling any function not marked view or pure
-- using inline assembly that contains certain opcodes
-
-
-
-
 
 <br>
 
@@ -110,42 +197,47 @@
 
 ### solidity vs. python/js/c++
 
+<br>
+
+* from python, we get: 
+	- modifiers
+	- multiple inheritances
+
+* from js we get:
+	- function-level scoping
+	- the `var` keyword
+
+* from c/c++ we get:
+	- scoping: variables are visible from the point right after their declaration until the end of the smallest {}-block that contains the declaration.
+	- the good ol' value types (passed by value, so they are always copied to the stack) and reference types (references to the same underlying variable).
+	- however, look how cool: a variable that is declared will have an initial default value whose byte-representation is all zeros.
+	- int and uint integers, with uint8 to uint256 in step of 8.
+
+* from being statically-typed:
+	- the type of each variable (local and state) needs to be specified at compile-time (as opposed to runtime).
 
 <br>
 
-from python, we get: 
-- modifiers
-- multiple inheritances
-
-from js we get:
-- function-level scoping
-- the `var` keyword
-
-from c/c++ we get:
-
-- scoping: variables are visible from the point right after their declaration until the end of the smallest {}-block that contains the declaration.
-- the good ol' value types (passed by value, so they are alway copied to the stack) and reference types (references to the same underlying variable).
-- however, look how cool: a variable that is declared will have an initial default value whose byte-representation is all zeros.
-- int and uint integers, with uint8 to uint256 in step of 8.
-
-from being statically-typed:
-- the type of each variable (local and state) needs to be specified at compile-time (as opposed to runtime).
+* you start files with the `SPDX License Identifier (`// SPDX-License-Identifier: MIT`)`. SPDX stands for software package data exchange. The compiler will include this in the bytecode metadata and make it machine readable.
 
 <br>
 
-you start files with the `SPDX License Identifier (`// SPDX-License-Identifier: MIT`)`. SPDX stands for software package data exchange. The compiler will include this in the bytecode metadata and make it machine readable.
+---
+
+### pragmas
 
 <br>
 
-**pragmas:** directives that are used to enable certain compiler features and checks. 
 
-version Pragma indicates the specific Solidity compiler version. It does not change the version of the compiler, though, so yeah, you will get an error if it does not match the compiler.
+* **pragmas:** directives that are used to enable certain compiler features and checks. 
 
-other types are Compiler version, ABI coder version, SMTCheker.
+* version Pragma indicates the specific Solidity compiler version. It does not change the version of the compiler, though, so yeah, you will get an error if it does not match the compiler.
+
+* other types are Compiler version, ABI coder version, SMTCheker.
 
 <br>
 
-The best-practices for layout in a contract are:
+* the best-practices for layout in a contract are:
 1. state variables
 2. events
 3. modifiers
@@ -154,9 +246,16 @@ The best-practices for layout in a contract are:
 
 <br>
 
+----
 
-**natspec comments**: Also known as the "ethereum natural language specification format". Written as triple slashes (`///`) or double asterisk block
-`(/**...*/)`, directly above function declarations or statements to generate documentation in `JSON` format for developers and end-users. These are some tags:
+### natspec comments
+
+<br>
+
+* **natspec comments**, also known as the "ethereum natural language specification format".
+* written as triple slashes (`///`) or double asterisk block
+`(/**...*/)`, directly above function declarations or statements to generate documentation in `JSON` format for developers and end-users.
+* these are some tags:
 
 * `@title`: describe the contract/interface
 * `@author`
@@ -171,12 +270,33 @@ The best-practices for layout in a contract are:
 
 <br>
 
-**events**: an abstraction on top of EVM's logging: emitting events cause the arguments to be stored in the transaction's log (which are associated with the address of the contract). events are emitted using **emit**.
+----
 
-events are especially useful for light clients and DApp services, which can "watch" for specific events and report them to the user interface, or make a change in the state of the application to reflect an event in an underlying contract.
+### events
 
 <br>
 
+* **events** are an abstraction on top of EVM's logging
+* events allow clients to react to specific contract changes.
+* the feature called **logs** is used by solidity in order to implement events.
+* contracts cannot access log data after it has been created, but they can be efficiently accessed from outside the blockchain (e.g., through bloom filters).
+* emitting events cause the arguments to be stored in the transaction's log (which are associated with the address of the contract).
+* events are emitted using **emit**.
+* events are especially useful for light clients and DApp services, which can "watch" for specific events and report them to the user interface, or make a change in the state of the application to reflect an event in an underlying contract.
+* for example, an example can be created with:
+
+```
+event Sent(address from, address to, uint amount);
+```
+
+and then, be called with:
+
+```
+emit Sent(msg.sender, receiver, amount)
+```
+
+
+<br>
 
 ---
 
@@ -184,7 +304,9 @@ events are especially useful for light clients and DApp services, which can "wat
 
 <br>
 
-**address types**. the address type comes in two types:
+#### address types
+
+* the address type comes in two types:
 
 1. holds a 20 byte value (the size of an Ethereum address)
 2. address payable: with additional members transfer and send. address payable is an address you can send Ether to (while plain address not).
@@ -196,29 +318,35 @@ the members of address type are pretty interesting: `.balance`, `.code`, `.codeh
 
 <br>
 
-**fixed-size Byte Arrays**: bytes1, bytes2, bytes3, …, bytes32 hold a sequence of bytes from one to up to 32. The type `byte[]` is an array of bytes, but due to padding rules, it wastes 31 bytes of space for each element, so it's better to use `bytes()`
+#### fixed-size byte arrays
+
+* bytes1, bytes2, bytes3, …, bytes32 hold a sequence of bytes from one to up to 32.
+* the type `byte[]` is an array of bytes, but due to padding rules, it wastes 31 bytes of space for each element, so it's better to use `bytes()`
 
 
 <br>
 
-**state variables**: variables that can be accessed by all functions of the contract and values are permanently stored in the contract storage.
+#### state variables
 
-**state visibility specifiers**: these are state variables that define how the methods will be accessed:
+* variables that can be accessed by all functions of the contract and values are permanently stored in the contract storage.
+* **state visibility specifiers** define how the methods will be accessed:
 
-- `public`: part of the contract interface and can be accessed internally or via messages.
-- `external`: like public functions, but cannot be called within the contract.
+- `public`: part of the contract interface and can be accessed internally or via messages (i.e., can be accessed from other contracts)
+- `external`: like public functions, but cannot be called within the contract. an external function `func` cannot be called internally: `func()` does not work but `this.func()` does.
 - `internal`: can only be accessed internally from within the current contracts (or contracts deriving from it).
 - `private`: can only be accessed from the contract they are defined in and not in derived contracts.
 - `pure`: neither reads nor writes any variables in storage. It can only operate on arguments and return data, without reference to any stored data. Pure functions are intended to encourage declarative-style programming without side effects or state.
 - `payable`: can accept incoming payments. Functions not declared as payable will reject incoming payments. There are two exceptions, due to design decisions in the EVM: coinbase payments and `SELFDESTRUCT` inheritance will be paid even if the fallback function is not declared as payable.
 
+<br>
 
+#### immutability
 
-**immutability**: state variables can be declared as constant or immutable, so they cannot be modified after the contract has been constructed. their difference is beautiful:
+* state variables can be declared as constant or immutable, so they cannot be modified after the contract has been constructed. their difference is beautiful:
 
-**for constant variables, the value is fixed at compile-time; for immutable variables, the value can still be assigned at construction time (in the constructor or point of declation)**
+* for constant variables, the value is fixed at compile-time; for immutable variables, the value can still be assigned at construction time (in the constructor or point of declaration).
 
-there is an entire gas cost thing too. For constant variables, the expression assigned is copied to all the places, and re-evaluated each time (local optimizations are possible). For immutable variables, the expression is evaluated once at constriction time and their value is copied to all the places in the code they are accessed, on a reserved 32 bytes, becoming usually more expensive than constant.
+* there is an entire gas cost thing too. for constant variables, the expression assigned is copied to all the places, and re-evaluated each time (local optimizations are possible). for immutable variables, the expression is evaluated once at constriction time and their value is copied to all the places in the code they are accessed, on a reserved 32 bytes, becoming usually more expensive than constant.
 
 <br>
 
@@ -228,28 +356,23 @@ there is an entire gas cost thing too. For constant variables, the expression as
 
 <br>
 
-**functions modifiers**: used to change the behavior of functions in a declarative way, so that the function's control flow continues after the "_" in the preceding modifier. This symbol can appear in the modifier multiple times. 
+#### functions modifiers
 
-the underscore followed by a semicolon is a placeholder that is replaced by the code of the function that is being modified. Essentially, the modifier is "wrapped around" the modified function, placing its code in the location identified by the underscore character.
+* used to change the behavior of functions in a declarative way, so that the function's control flow continues after the "_" in the preceding modifier. This symbol can appear in the modifier multiple times. 
 
-to apply a modifier, you add its name to the function declaration. More than one modifier can be applied to a function; they are applied in the sequence they are declared, as a space-separated list.
+* the underscore followed by a semicolon is a placeholder that is replaced by the code of the function that is being modified. Essentially, the modifier is "wrapped around" the modified function, placing its code in the location identified by the underscore character.
+
+* to apply a modifier, you add its name to the function declaration. More than one modifier can be applied to a function; they are applied in the sequence they are declared, as a space-separated list.
 
 ```
 function destroy() public onlyOwner {
 ```
 
-<br>
 
-**function visibility specifiers**: these are how visibility works for functions:
-
-- `public`: part of the contract interface and can be either called internally or via messages. 
-- `external`: part of the contract interface, and can be called from other contracts and via transactions. Here is the interesting part: an external function `func` cannot be called internally, so `func()` would not work. But `this.func()` does.
-- `internal`: can only be accessed from within the current contract or contracts deriving from it.
-- `private`: can only be accessed from the contract they are defined in and not even in derived contracts
 
 <br>
 
-**function mutability specifiers**:
+#### function mutability specifiers
 
 - `view` functions can read the contract state but not modify it: enforced at runtime via STATICALL opcode.
 - `pure` functions can neither read a contract nor modify it.
@@ -257,7 +380,9 @@ function destroy() public onlyOwner {
 
 <br>
 
-**overloading**: a contract can have multiple functions of the same name but with different parameter types. they are matched by the arguments supplied in the function call 😬.
+#### overloading
+
+* a contract can have multiple functions of the same name but with different parameter types. they are matched by the arguments supplied in the function call 😬.
 
 
 <br>
@@ -273,11 +398,17 @@ function destroy() public onlyOwner {
 
 <br>
 
-**constructors**: when a contract is created, the function with *constructor* is executed once and then the final code of the contract is stored on the blockchain (all public and external functions, but not the constructor code or internal functions called by it).
+#### constructors
+
+* constructor code is only run when the contract is created. it cannot be called afterwards.
+* a global variable can be the assigned to the contractor creator by attributing `msg.sender` to it.
+* when a contract is created, the function with *constructor* is executed once and then the final code of the contract is stored on the blockchain (all public and external functions, but not the constructor code or internal functions called by it).
 
 <br>
 
-**receive function**: a contract can have ONE *receive* function (*receive() external payable {...}*) without the function keyword, and no arguments and no return and... have `external` and `payable`. this is the function on plain ether transfers via `send()` or `transfer()`.
+#### receive function
+
+* a contract can have ONE *receive* function (*receive() external payable {...}*) without the function keyword, and no arguments and no return and... have `external` and `payable`. this is the function on plain ether transfers via `send()` or `transfer()`.
 
 interesting facts:
 
@@ -288,18 +419,23 @@ interesting facts:
 
 <br>
 
-**falback function**: kinda in the same idea, a contract can have ONE *fallback* function, which must have external visibility.
+#### falback function
 
-- fallback is executed on a call to the contract if none of the other functions match the given function signature or no data was supplied and there is not receive Ether function.
+* kinda in the same idea, a contract can have ONE *fallback* function, which must have external visibility.
+* fallback is executed on a call to the contract if none of the other functions match the given function signature or no data was supplied and there is not received Ether function.
 
-
-<br>
-
-**transfer:** the transfer function fails if the balance of the contract is not enough or if the transfer is rejected by the receiving account, revering on failure.
 
 <br>
 
-**send:** low-level counterpart of transfer, however, if the execution fails then send only returns false (return value must be checked by the caller).
+#### transfer
+
+* the transfer function fails if the balance of the contract is not enough or if the transfer is rejected by the receiving account, revering on failure.
+
+<br>
+
+#### send
+
+* low-level counterpart of transfer, however, if the execution fails then send only returns false (return value must be checked by the caller).
 
 <br>
 
@@ -309,28 +445,62 @@ interesting facts:
 
 <br>
 
-* the evm manages different kinds of data depending on their context:
+* the evm manages different kinds of data depending on their context.
 
 <br>
 
-* **stack**: the evm operates on a virtual stack, which has a maximum size of 1024, stack items have a size of 256 bits (the evm is a 256-bit word machine, which facilitates keccak256 hash scheme and elliptic-curve). the opcodes to modify the stack are: `POP` (remove from stack), `PUSH n` (places the `n` butes item into the stack), `DUP n` (duplicates the `n`th stack item), `SWAP n` (exchanges the first and the `n`th stack item).
+#### stack
 
-* **calldata**: read-only byte-addressable space where the data parameter of a tx or call is held. unlike the stack, to use this data, you have to specify an exact byte offset and number of bytes to read. the opcodes include: `CALLDATASIZE` (get size of tx data), `CALLDATALOAD` (loads 32 byte of tx data onto the stack), `CALLDATACOPY` (copies the number of bytes of the tx data to memory). there are also the inline assembly versions: `calldatasize`, `calldataload`, calldatacopy`. they can be called through:
+* the evm operates on a virtual stack, which has a maximum size of 1024.
+* stack items have a size of 256 bits (the evm is a 256-bit word machine, which facilitates keccak256 hash scheme and elliptic-curve).
+* the opcodes to modify the stack are:
+	* `POP` (remove from stack),
+	* `PUSH n` (places the `n` bytes item into the stack),
+ 	* `DUP n` (duplicates the `n`th stack item),
+  	* `SWAP n` (exchanges the first and the `n`th stack item).
+
+
+<br>
+
+#### calldata
+
+* a called contract receive a freshly cleared instance of memory and has access to the call payload, provided in a separated area called the **calldata**. after it finishes execution, it can return data which will be stored at a location in the caller's memory preallocated by the caller.
+* read-only byte-addressable space where the data parameter of a tx or call is held. unlike the stack, to use this data, you have to specify an exact byte offset and number of bytes to read.
+* the opcodes include: `CALLDATASIZE` (get size of tx data), `CALLDATALOAD` (loads 32 byte of tx data onto the stack), `CALLDATACOPY` (copies the number of bytes of the tx data to memory).
+* there are also the inline assembly versions: `calldatasize`, `calldataload`, calldatacopy`.
+* they can be called through:
 
 ```
 assembly {
 }
 ```
 
-* **memory**: volatile read-write byte-addressable space (store data during execution) initiallized as zero. the evm opcodes are `MLOAD` (loads a word into the stack), `MSTORE` (saves a word to memory), `MSTORE8` (saves a byte to memory). gas costs since memory loads (MLOADs) are significantly cheaper in gas than SLOADs.
+<br>
 
-* **storage**: persistant read-write word-addressable space for contracts, addressed by words. it's a key-value mapping of 2**256 slots of 32 bytes each. gas to save data into storage is one of the highest operations. the evm opcodes are: `SLOAD` (loads a word from storage to stack), `SSTORE` (saves a word to storage).
-	* bitpack loading: storing multiple variables in a single 32-byts slot by ordering the byte size
-	* fixed-length arrays: takes a predetermined amount of slots.
-	* dynamic-length arrays: new elements assign slots after deployment (handled by the evm with keccak256 hashing)
-	* mappings: dynamic type with key hashes
+#### storage
+
+* persistent read-write word-addressable space for contracts, addressed by words. it's a key-value mapping of 2**256 slots of 32 bytes each. gas to save data into storage is one of the highest operations.
+* the evm opcodes are: `SLOAD` (loads a word from storage to stack), `SSTORE` (saves a word to storage).
+* bitpack loading: storing multiple variables in a single 32-bytes slot by ordering the byte size.
+* fixed-length arrays: takes a predetermined amount of slots.
+* dynamic-length arrays: new elements assign slots after deployment (handled by the evm with keccak256 hashing).
+* mappings: dynamic type with key hashes. for example, `mapping(address => int)` maps unsigned integers. however, it is neither possible to obtain a list of all keys of a mapping, nor a list of all values.
+* it's costly to read, initialise, and modify storage.
+* a contract cannot read or write to any storage apart from its own.
 
 
+<br>
+
+
+#### memory
+
+* the second data area of which a contract obtains a cleared instance for each message call.
+* memory is linear and can be addressed at the byte level.
+* reads are limited to a width of 256 bits, while writes can be either 8 bits or 256 bits wide.
+* memory is expanded by a word (256-bit), when accessing (either reading or writing) a previously untouched memory.
+* at the time of expansion, the cost in gas must be paid - memory is more costly the large it grows, scaling quadratically.
+* volatile read-write byte-addressable space (store data during execution) initialized as zero.
+* the evm opcodes are `MLOAD` (loads a word into the stack), `MSTORE` (saves a word to memory), `MSTORE8` (saves a byte to memory). gas costs since memory loads (MLOADs) are significantly cheaper in gas than SLOADs.
 
 <br>
 
@@ -340,19 +510,21 @@ assembly {
 
 <br>
 
-**call/delegatecall/ataticall**: ued to interface with contracts that do not adhere to ABI, or to give more direct control over encoding. they all take a single bytes memory parameter and return the success condition (as a bool) and the return data (byte memory).
+#### call / delegatecall/ staticall
 
-with `DELEGATECALL`, only the code of the given address is used but all other aspects are taken from the current contract. The purpose is to use logic code that is stored in the callee contract but operates on the state of the caller contract.
-
-with `STATCALL`, the execution will revert if the called function modifies the state in any way.
+* used to interface with contracts that do not adhere to ABI, or to give more direct control over encoding.
+* they all take a single bytes memory parameter and return the success condition (as a bool) and the return data (byte memory).
+* with `DELEGATECALL`, only the code of the given address is used but all other aspects are taken from the current contract. The purpose is to use logic code that is stored in the callee contract but operates on the state of the caller contract.
+* with `STATCALL`, the execution will revert if the called function modifies the state in any way.
 
 <br>
 
 
-**creating a new instance**:
+#### creating a new instance
 
 * the safest way to call another contract is if you create that other contract yourself. 
-* to do this, you can simply instantiate it, using the keyword `new`, as in other object-oriented languages. This keyword will create the contract on the blockchain and return an object that you can use to reference it. 
+* to do this, you can simply instantiate it, using the keyword `new`, as in other object-oriented languages.
+* this keyword will create the contract on the blockchain and return an object that you can use to reference it. 
 
 ```
 contract Token is Mortal {
@@ -366,7 +538,7 @@ contract Token is Mortal {
 
 <br>
 
-**addressing an existing instance**:
+#### addressing an existing instance
 
 * another way you can call a contract is by casting the address of an existing instance of the contract. 
 * with this method, you apply a known interface to an existing instance.
@@ -387,13 +559,11 @@ contract Token is Mortal {
 
 ```
 
-
-
 <br>
 
 ----
 
-### block and tx properties** 
+### block and tx properties
 
 - `blockhash`
 - `block.chainid`
@@ -412,7 +582,9 @@ contract Token is Mortal {
 
 <br>
 
-**randomness**. Not cute shit: you cannot rely on block.timestamp or blockhash as a source of randomness, as they can be influenced by miners to some degree.
+#### randomness
+
+* you cannot rely on `block.timestamp` or `blockhash` as a source of randomness.
 
 <br>
 
@@ -420,7 +592,6 @@ contract Token is Mortal {
 
 ### ABI encoding and decoding functions
 
-<br>
 
 - `abi.decode`
 - `abi.encode`
@@ -434,9 +605,17 @@ contract Token is Mortal {
 
 ### error handling
 
-<br>
 
-- `assert()`: causes a panic error and reverts if the condition is not met
-- `require()`: reverts if the condition is not met
-- `revert()`: abort execution and revert state changes
+* errors are used together with the `revert statement`, which unconditionally aborts and reverts all changes.
+* examples of error handling in solidity are:
+	- `assert()`: causes a panic error and reverts if the condition is not met.
+	- `require()`: reverts if the condition is not met.
+	- `revert()`: abort execution and revert state changes.
+
+* errors can also provide information about a failed operations. they are returned to the caller of the function:
+
+```
+error InsufficientBalance(uint requested, uint available);
+```
+
 
