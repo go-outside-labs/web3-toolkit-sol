@@ -26,11 +26,13 @@
 
 <br>
 
-* each transaction is charged with some gas that has to be paid for by the originator (`tx.origin`).
-* if the gas is used up at any point, an out-of-gas exception is triggered, ending execution and reverting all modifications made to the state in the current call frame.
+* gas is a unit of computation. each transaction is charged with some gas that has to be paid for by the originator (`tx.origin`).
+* gas spent is the total amount of gas used in a transaction. if the gas is used up at any point, an out-of-gas exception is triggered, ending execution and reverting all modifications made to the state in the current call frame.
 * since each block has a maximum amount of gas, it also limits the amount of work needed to validate a block.
-* the gas price is set by the originator of the transaction, who has to pay `gas_price * gas` upfront to the EVM executor. any gas left is refunded to the transaction originator. exceptions that revert changes do not refund gas.
-  
+* gas price is how much ether you are willing to pay for gas. it's set by the originator of the transaction, who has to pay `gas_price * gas` upfront to the EVM executor. any gas left is refunded to the transaction originator. exceptions that revert changes do not refund gas.
+* there are two upper bounds for the amount of gas you can spend:
+	- gas limit: max amount of gas you are willing to use for your transaction, set by you.
+ 	- block gas limit: max amount of gas allowed in a block, set by the network.   
 
 <br>
 
@@ -353,6 +355,26 @@ bytes1 b = 0x56; //  [01010110]
 #### state variables
 
 * variables that can be accessed by all functions of the contract and values are permanently stored in the contract storage.
+
+```
+contract SimpleStorage {
+    // State variable
+    uint public num;
+
+    // You need to send a transaction to write to a state variable
+    function set(uint _num) public {
+        num = _num;
+    }
+
+    // You can read from a state variable without sending a transaction
+    function get() public view returns (uint) {
+        return num;
+    }
+}
+```
+
+<br>
+
 * **state visibility specifiers** define how the methods will be accessed:
 	- `public`: part of the contract interface and can be accessed internally or via messages (i.e., can be accessed from other contracts).
 	- `external`: like public functions, but cannot be called within the contract. an external function `func` cannot be called internally: `func()` does not work but `this.func()` does.
@@ -643,5 +665,36 @@ contract Token is Mortal {
 ```
 error InsufficientBalance(uint requested, uint available);
 ```
+
+<br>
+
+----
+
+### if / else
+
+<br>
+
+```
+contract IfElse {
+
+    function foo(uint x) public pure returns (uint) {
+        if (x < 10) {
+            return 0;
+        } else if (x < 20) {
+            return 1;
+        } else {
+            return 2;
+        }
+    }
+
+    function ternary(uint _x) public pure returns (uint) {
+        // shorthand way to write if / else statement
+        // the "?" operator is called the ternary operator
+        return _x < 10 ? 1 : 2;
+    }
+}
+````
+
+
 
 
