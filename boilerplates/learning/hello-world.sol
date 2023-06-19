@@ -21,7 +21,7 @@ contract GmWorld {
     }
 
     // A public function that accepts a string argument
-    // and updates the `message` storage variable.
+    // and updates the `happiness` storage variable.
     function update(string memory bobaTea) public {
         happiness = bobaTea;
     }
