@@ -469,14 +469,9 @@ contract SimpleStorage {
 
 <br>
 
-* **state visibility specifiers** define how the methods will be accessed:
-	- `public`: any contract and account can call.
-	- `external`: only other contracts and accounts can call. an external function `func` cannot be called internally: `func()` does not work but `this.func()` does.
-	- `internal`: can only be accessed internally from within the current contracts (or contracts deriving from it with `internal` function).
-	- `private`: can only be accessed from the contract where the fucncion is defined (not in derived contracts).
-	- `pure`: neither reads nor writes any variables in storage. It can only operate on arguments and return data, without reference to any stored data. pure functions are intended to encourage declarative-style programming without side effects or state.
-	- `payable`: can accept incoming payments. Functions not declared as payable will reject incoming payments. There are two exceptions, due to design decisions in the EVM: coinbase payments and `SELFDESTRUCT` inheritance will be paid even if the fallback function is not declared as payable.
 * state variables can be declared as `public`, `private`, or `internal`, but not `external`.
+
+
 
 <br>
 
@@ -550,9 +545,10 @@ contract Child is Base {
 
 #### enum
 
-<br>
 
-* enumerables are usefyl to model choice and keep track of a state.
+* enumerables are useful to model choice and keep track of a state.
+* they are used to create custom types with a finite set of constants values.
+* they cannot have more than 256 members.
 * they can be declared outside of a contract.
 
 <br>
@@ -600,6 +596,7 @@ contract Enum {
 
 <br>
 
+* `structs` are custom-defined types that can group several variables of same/different types together to create a custom data structure.
 * you can define your own type by creating a `struct`, and they are usful for grouping together related data.
 * structs can be declared outside of a contract and imported in another contract.
 
@@ -651,9 +648,16 @@ contract Todos {
 }
 ```
 
+
+
 <br>
 
-#### immutability
+---
+
+
+### immutability
+
+<br>
 
 * state variables can be declared as constant or immutable, so they cannot be modified after the contract has been constructed.
 	* for **constant variables**, the value is fixed at compile-time.
@@ -698,6 +702,66 @@ function destroy() public onlyOwner {
 
 <br>
 
+#### state visibility specifiers
+
+* define how the methods will be accessed.
+* `public`:
+	* any contract and account can call.
+* `external`:
+	* only other contracts and accounts can call.
+	* an external function `func` cannot be called internally: `func()` does not work but `this.func()` does.
+* `internal`:
+	* can only be accessed internally from within the current contracts (or contracts deriving from it with `internal` function).
+* `private`:
+	* can only be accessed from the contract where the fucncion is defined (not in derived contracts).
+* `payable`:
+	* can accept incoming ethere payments.
+ 	* functions not declared as payable will reject incoming payments.
+  	* there are two exceptions, due to design decisions in the EVM: coinbase payments and `SELFDESTRUCT` inheritance will be paid even if the fallback function is not declared as payable.
+
+<br>
+
+```
+contract Payable {
+    // Payable address can receive Ether
+    address payable public owner;
+
+    // Payable constructor can receive Ether
+    constructor() payable {
+        owner = payable(msg.sender);
+    }
+
+    // Function to deposit Ether into this contract.
+    // Call this function along with some Ether.
+    // The balance of this contract will be automatically updated.
+    function deposit() public payable {}
+
+    // Call this function along with some Ether.
+    // The function will throw an error since this function is not payable.
+    function notPayable() public {}
+
+    // Function to withdraw all Ether from this contract.
+    function withdraw() public {
+        // get the amount of Ether stored in this contract
+        uint amount = address(this).balance;
+
+        // send all Ether to owner
+        // Owner can receive Ether since the address of owner is payable
+        (bool success, ) = owner.call{value: amount}("");
+        require(success, "Failed to send Ether");
+    }
+
+    // Function to transfer Ether from this contract to address from input
+    function transfer(address payable _to, uint _amount) public {
+        // Note that "to" is declared as payable
+        (bool success, ) = _to.call{value: _amount}("");
+        require(success, "Failed to send Ether");
+    }
+}
+```
+
+<br>
+
 #### function mutability specifiers
 
 * getter functions can be declared `view` or `pure:
@@ -706,6 +770,7 @@ function destroy() public onlyOwner {
 	 	* they are enforced at runtime via `STATICALL` opcode.
 	* `pure` functions declares that no state variable can be changed or read.
 		* they can neither read a contract nor modify it.
+  		* pure functions are intended to encourage declarative-style programming without side effects or state. 
 * only `view` can be enforced at the EVM level, not `pure`.
 
 <br>
@@ -720,16 +785,7 @@ function destroy() public onlyOwner {
 
 ---
 
-### data structures
-
-<br>
-
-- `structs` are custom-defined types that can group several variables of same/different types together to create a custom data structure.
-- `enums` are used to create custom types with a finite set of constants values. they cannot have more than 256 members.
-
-<br>
-
-#### constructors
+### constructors
 
 * a constructor is an optional function that only run when the contract is created (it cannot be called afterwards).
 * a global variable can be the assigned to the contractor creator by attributing `msg.sender` to it.
@@ -792,6 +848,78 @@ contract E is X, Y {
 
 <br>
 
+-----
+
+### sending and receiving ether
+
+<br>
+
+* you can send ether to other contracts by:
+	* `transfer` (2300 gas, throws error)
+ 	* `send` (2300 gas, returns bool)
+  	* `call` (forwards all gas or ser gas, returns bool), should be used with re-entrancy guard (i.e., by making all state changes before calling other contracts, and by using re-entrancy guard modifier)
+ 
+* a contract receiving ether must have a tleast of the functions below:
+	* `receive() external payable`, called if `msg.data` is empty, otherwise `fallback()` is called
+ 	* `fallback() external payable`
+<br>
+
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+contract ReceiveEther {
+    /*
+    Which function is called, fallback() or receive()?
+
+           send Ether
+               |
+         msg.data is empty?
+              / \
+            yes  no
+            /     \
+receive() exists?  fallback()
+         /   \
+        yes   no
+        /      \
+    receive()   fallback()
+    */
+
+    // Function to receive Ether. msg.data must be empty
+    receive() external payable {}
+
+    // Fallback function is called when msg.data is not empty
+    fallback() external payable {}
+
+    function getBalance() public view returns (uint) {
+        return address(this).balance;
+    }
+}
+
+contract SendEther {
+    function sendViaTransfer(address payable _to) public payable {
+        // This function is no longer recommended for sending Ether.
+        _to.transfer(msg.value);
+    }
+
+    function sendViaSend(address payable _to) public payable {
+        // Send returns a boolean value indicating success or failure.
+        // This function is not recommended for sending Ether.
+        bool sent = _to.send(msg.value);
+        require(sent, "Failed to send Ether");
+    }
+
+    function sendViaCall(address payable _to) public payable {
+        // Call returns a boolean value indicating success or failure.
+        // This is the current recommended method to use.
+        (bool sent, bytes memory data) = _to.call{value: msg.value}("");
+        require(sent, "Failed to send Ether");
+    }
+}
+```
+
+<br>
+
 #### receive function
 
 * a contract can have ONE **receive** function (`receive() external payable {...}`, without the function keyword, and no arguments and no return).
@@ -804,18 +932,18 @@ contract E is X, Y {
 
 #### falback function
 
- in the same idea, a contract can have ONE *fallback* function, which must have external visibility.
+* a contract can have ONE *fallback* function, which must have external visibility.
 * fallback is executed on a call to the contract if none of the other functions match the given function signature or no data was supplied and there is not received Ether function.
 
 <br>
 
-#### transfer
+#### transfer function
 
 * the transfer function fails if the balance of the contract is not enough or if the transfer is rejected by the receiving account.
 
 <br>
 
-#### send
+#### send function
 
 * low-level counterpart of transfer. if the execution fails, then send returns false.
 * the return value must be checked by the caller.
@@ -1313,6 +1441,74 @@ contract C is A {
 <br>
 
 ----
+
+### interfaces
+
+<br>
+
+* interfaces are a way to interact with other contracts.
+* they cannot have any functions implemented, declare a constructor, or declare state variables.
+* they can inherit from other interfaces.
+* all declared functions must be external.
+
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+contract Counter {
+    uint public count;
+
+    function increment() external {
+        count += 1;
+    }
+}
+
+interface ICounter {
+    function count() external view returns (uint);
+
+    function increment() external;
+}
+
+contract MyContract {
+    function incrementCounter(address _counter) external {
+        ICounter(_counter).increment();
+    }
+
+    function getCount(address _counter) external view returns (uint) {
+        return ICounter(_counter).count();
+    }
+}
+
+// Uniswap example
+interface UniswapV2Factory {
+    function getPair(
+        address tokenA,
+        address tokenB
+    ) external view returns (address pair);
+}
+
+interface UniswapV2Pair {
+    function getReserves()
+        external
+        view
+        returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
+}
+
+contract UniswapExample {
+    address private factory = 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
+    address private dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+    address private weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+
+    function getTokenReserves() external view returns (uint, uint) {
+        address pair = UniswapV2Factory(factory).getPair(dai, weth);
+        (uint reserve0, uint reserve1, ) = UniswapV2Pair(pair).getReserves();
+        return (reserve0, reserve1);
+    }
+}
+```
+
+<br>
+
 
 
 
