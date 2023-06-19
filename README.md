@@ -5,21 +5,27 @@
 
 #### 👉 start with [solidity tl; dr](solidity_tldr.md)
 
+<br>
 
 
-
-#### 🧰 dirs in this repo:
+----
+### 🧰 dirs in this repo
 
 <br>
 
-* [set your workspace](workspace)
-* [tokens standard](token_standards)
-* [boilerplates](boilerplates)
-* [saving gas](saving_gas)
-* [abi encoding](abi_encoding)
-* [calldata](calldata)
-* [foundry](foundry)
-* [events](events)
+###### basic
+
+* **[your workspace](basic_knowledge/workspace)**
+* **[boilerplates](basic_knowledge/boilerplates)**
+* **[foundry](basic_knowledge/foundry)**
+
+###### advanced
+
+* **[tokens standard](advanced_knowledge/token_standards)**
+* **[saving gas](advanced_knowledge/saving_gas)**
+* **[abi encoding](advanced_knowledge/abi_encoding)**
+* **[calldata](advanced_knowledge/calldata)**
+* **[events](advanced_knowledge/events)**
 
 
 
@@ -31,34 +37,29 @@
 
 <br>
 
-##### learning solidity
+###### learning solidity
 
-* [solidity docs](https://docs.soliditylang.org/en/v0.8.12/)
-* [openzeppelin docs](https://docs.openzeppelin.com/)
-* [solidity by example](https://solidity-by-example.org/)
-* [smart contract programmer](https://www.youtube.com/channel/UCJWh7F3AFyQ_x01VKzr9eyA)
-* [solidity vscode plugin](https://marketplace.visualstudio.com/items?itemName=tintinweb.solidity-visual-auditor)
-* [learn solidity with examples, by jsagalli](https://github.com/James-Sangalli/learn-solidity-with-examples)
-
-
-<br>
-
-##### writing beautiful code
-
-* [solmate](https://github.com/transmissions11/solmate/)
-* [dapp.tools](https://dapp.tools/)
-* [solidity cheatsheet and best practices](https://github.com/manojpramesh/solidity-cheatsheet)
+* **[solidity docs](https://docs.soliditylang.org/en/v0.8.12/)**
+* **[openzeppelin docs](https://docs.openzeppelin.com/)**
+* **[solidity by example](https://solidity-by-example.org/)**
+* **[smart contract programmer](https://www.youtube.com/channel/UCJWh7F3AFyQ_x01VKzr9eyA)**
+* **[learn solidity with examples, by jsagalli](https://github.com/James-Sangalli/learn-solidity-with-examples)**
 
 
 
-<br>
+###### writing beautiful code
 
-##### tools
+* **[solmate](https://github.com/transmissions11/solmate/)**
+* **[dapp.tools](https://dapp.tools/)**
+* **[solidity cheatsheet and best practices](https://github.com/manojpramesh/solidity-cheatsheet)**
 
-* [another solidity vscode plugin](https://marketplace.visualstudio.com/items?itemName=JuanBlanco.solidity)
 
-<br>
+###### tools
 
-##### advanced readings
+* **[solidity vscode plugin](https://marketplace.visualstudio.com/items?itemName=tintinweb.solidity-visual-auditor)**
+* **[another solidity vscode plugin](https://marketplace.visualstudio.com/items?itemName=JuanBlanco.solidity)**
 
-* [reusable properties for ethereum contracts, by trailofbits](https://blog.trailofbits.com/2023/02/27/reusable-properties-ethereum-contracts-echidna/)
+
+###### advanced readings
+
+* **[reusable properties for ethereum contracts, by trailofbits](https://blog.trailofbits.com/2023/02/27/reusable-properties-ethereum-contracts-echidna/)**
