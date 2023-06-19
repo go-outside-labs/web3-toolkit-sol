@@ -12,13 +12,6 @@ interface IERC721 is IERC165 {
 
     function safeTransferFrom(address from, address to, uint tokenId) external;
 
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint tokenId,
-        bytes calldata data
-    ) external;
-
     function transferFrom(address from, address to, uint tokenId) external;
 
     function approve(address to, uint tokenId) external;
