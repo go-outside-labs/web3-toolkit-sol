@@ -484,6 +484,9 @@ emit Sent(msg.sender, receiver, amount)
 
 * in terms of the location of the data, variables are declared as either:
 	* storage: variable is a state variable (store on blockchain).
+ 		* solidity storage is an array of length `2^256`.
+     		* each slot in the array can store 32 bytes.
+       		* order of declaration and the type of state variables define which slots it will use, unless you use assembly, then you can write to any slot. 
  	* memory: variable is in memory and it exists while a function is being called.
   	* calldata: special data location that contains function arguments
  
