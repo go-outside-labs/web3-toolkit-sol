@@ -630,13 +630,13 @@ function destroy() public onlyOwner {
 
 #### function mutability specifiers
 
-* getter functions can be declared `view` or `pure.
-* `view` functions declares that no state will be changed.
-	* they can read the contract state but not modify it.
- 	* they are enforced at runtime via `STATICALL` opcode.
-* `pure` functions declare that no state variable will be changed or read.
-	* they can neither read a contract nor modify it.
-- only `view` can be enforced at the EVM level, not `pure`.
+* getter functions can be declared `view` or `pure:
+	* `view` functions declares that no state will be changed.
+		* they can read the contract state but not modify it.
+	 	* they are enforced at runtime via `STATICALL` opcode.
+	* `pure` functions declares that no state variable can be changed or read.
+		* they can neither read a contract nor modify it.
+* only `view` can be enforced at the EVM level, not `pure`.
 
 <br>
 
@@ -889,17 +889,51 @@ contract Token is Mortal {
 
 <br>
 
-* errors are used together with the `revert statement`, which unconditionally aborts and reverts all changes.
-* examples of error handling in solidity are:
-	- `assert()`: causes a panic error and reverts if the condition is not met.
-	- `require()`: reverts if the condition is not met.
-	- `revert()`: abort execution and revert state changes.
-* errors can also provide information about a failed operations.
-* they are returned to the caller of the function:
+* an error will undo all changes made to the state during a transaction and they are returned to the caller of the function, example:
 
 ```
 error InsufficientBalance(uint requested, uint available);
 ```
+ 
+* errors are used together with the `revert statement`, which unconditionally aborts and reverts all changes.
+* errors can also provide information about a failed operations.
+* you can throw an error by calling:
+	- `assert()`: used to check for code that should never be false. causes a panic error and reverts if the condition is not met.
+	- `require()`: used to validate inputs and conditions before execution. reverts if the condition is not met.
+	- `revert()`: similar to rquire. abort execution and revert state changes.
+
+<br>
+
+```
+contract Error {
+    function testRequire(uint _i) public pure {
+        // Require should be used to validate conditions such as:
+        // - inputs
+        // - conditions before execution
+        // - return values from calls to other functions
+        require(_i > 10, "Input must be greater than 10");
+    }
+
+    function testRevert(uint _i) public pure {
+        // Revert is useful when the condition to check is complex.
+        // This code does the exact same thing as the example above
+        if (_i <= 10) {
+            revert("Input must be greater than 10");
+        }
+    }
+
+    uint public num;
+
+    function testAssert() public view {
+        // Assert should only be used to test for internal errors,
+        // and to check invariants.
+
+        // Here we assert that num is always equal to 0
+        // since it is impossible to update the value of num
+        assert(num == 0);
+    }
+```
+
 
 <br>
 
