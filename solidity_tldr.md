@@ -2,7 +2,7 @@
 
 <br>
 
-#### *a smart contract is a collection of code (functions) and data (state) on the ethereum blockchain.*
+#### ✨ *a smart contract is a collection of code (functions) and data (state) on the ethereum blockchain.*
 
 <br>
 
@@ -336,13 +336,62 @@ emit Sent(msg.sender, receiver, amount)
 
 <br>
 
-#### fixed-size byte arrays
+#### arrays and byte arrays
+
+* they can be two types: **fixed-sized arrays** and **dynamically-sized arrays**.
+
+```
+contract Array {
+    // Several ways to initialize an array
+    uint[] public arr;
+    uint[] public arr2 = [1, 2, 3];
+    // Fixed sized array, all elements initialize to 0
+    uint[10] public myFixedSizeArr;
+
+    function get(uint i) public view returns (uint) {
+        return arr[i];
+    }
+
+    // Solidity can return the entire array.
+    // But this function should be avoided for
+    // arrays that can grow indefinitely in length.
+    function getArr() public view returns (uint[] memory) {
+        return arr;
+    }
+
+    function push(uint i) public {
+        // Append to array
+        // This will increase the array length by 1.
+        arr.push(i);
+    }
+
+    function pop() public {
+        // Remove last element from array
+        // This will decrease the array length by 1
+        arr.pop();
+    }
+
+    function getLength() public view returns (uint) {
+        return arr.length;
+    }
+
+    function remove(uint index) public {
+        // Delete does not change the array length.
+        // It resets the value at index to it's default value,
+        // in this case 0
+        delete arr[index];
+    }
+
+    function examples() external {
+        // create array in memory, only fixed size can be created
+        uint[] memory a = new uint[](5);
+    }
+}
+```
 
 * the data type `byte` represents a sequence of bytes.
-* there are two types: fixed-sized byte arrays and dynamically-sized byte arrays.
-* `bytes1`, `bytes2`, `bytes3`, ..., `bytes32` hold a sequence of bytes from one to up to `32`.
+* `bytes1`, `bytes2`, `bytes3`, ... `bytes32` hold a sequence of bytes from one to up to `32`.
 * the type `byte[]` is an array of bytes that due to padding rules, wastes `31 bytes` of space for each element, therefore it's better to use `bytes()`.
-* example:
 
 ```
 bytes1 a = 0xb5; //  [10110101]
@@ -382,6 +431,111 @@ contract SimpleStorage {
 	- `private`: can only be accessed from the contract they are defined in and not in derived contracts.
 	- `pure`: neither reads nor writes any variables in storage. It can only operate on arguments and return data, without reference to any stored data. pure functions are intended to encourage declarative-style programming without side effects or state.
 	- `payable`: can accept incoming payments. Functions not declared as payable will reject incoming payments. There are two exceptions, due to design decisions in the EVM: coinbase payments and `SELFDESTRUCT` inheritance will be paid even if the fallback function is not declared as payable.
+
+<br>
+
+#### enum
+
+<br>
+
+* enumerables are usefyl to model choice and keep track of a state.
+* they can be declared outside of a contract.
+
+<br>
+
+```
+contract Enum {
+    enum Status {
+        Pending,
+        Shipped,
+        Accepted,
+        Rejected,
+        Canceled
+    }
+
+    // Default value is the first element listed in
+    // definition of the type, in this case "Pending"
+    Status public status;
+
+    function get() public view returns (Status) {
+        return status;
+    }
+
+    // Update status by passing uint into input
+    function set(Status _status) public {
+        status = _status;
+    }
+
+    // You can update to a specific enum like this
+    function cancel() public {
+        status = Status.Canceled;
+    }
+
+    // delete resets the enum to its first value, 0
+    function reset() public {
+        delete status;
+    }
+}
+```
+
+<br>
+
+
+
+#### structs
+
+<br>
+
+* you can define your own type by creating a `struct`, and they are usful for grouping together related data.
+* structs can be declared outside of a contract and imported in another contract.
+
+```
+contract Todos {
+    struct Todo {
+        string text;
+        bool completed;
+    }
+
+    // An array of 'Todo' structs
+    Todo[] public todos;
+
+    function create(string calldata _text) public {
+        // 3 ways to initialize a struct:
+
+        // 1. calling it like a function
+        todos.push(Todo(_text, false));
+
+        // 2. key value mapping
+        todos.push(Todo({text: _text, completed: false}));
+
+        // 3. initialize an empty struct and then update it
+        Todo memory todo;
+        todo.text = _text;
+        // todo.completed initialized to false
+
+        todos.push(todo);
+    }
+
+    // Solidity automatically created a getter for 'todos' so
+    // you don't actually need this function.
+    function get(uint _index) public view returns (string memory text, bool completed) {
+        Todo storage todo = todos[_index];
+        return (todo.text, todo.completed);
+    }
+
+    // update text
+    function updateText(uint _index, string calldata _text) public {
+        Todo storage todo = todos[_index];
+        todo.text = _text;
+    }
+
+    // update completed
+    function toggleCompleted(uint _index) public {
+        Todo storage todo = todos[_index];
+        todo.completed = !todo.completed;
+    }
+}
+```
 
 <br>
 
@@ -540,14 +694,47 @@ assembly {
 * storage a key-value mapping of `2**256 `slots of 32 bytes each.
 * gas to save data into storage is one of the highest operations.
 * the evm opcodes are: `SLOAD` (loads a word from storage to stack), `SSTORE` (saves a word to storage).
-* bitpack loading: storing multiple variables in a single `32-bytes` slot by ordering the byte size.
-* fixed-length arrays: takes a predetermined amount of slots.
-* dynamic-length arrays: new elements assign slots after deployment (handled by the evm with keccak256 hashing).
-* mappings: dynamic type with key hashes. for example, `mapping(address => int)` maps unsigned integers.
-* however, it is neither possible to obtain a list of all keys of a mapping, nor a list of all values.
 * it's costly to read, initialise, and modify storage.
 * a contract cannot read or write to any storage apart from its own.
 
+<br>
+
+#### type of storages
+
+* bitpack loading: storing multiple variables in a single `32-bytes` slot by ordering the byte size.
+* fixed-length arrays: takes a predetermined amount of slots.
+* dynamic-length arrays: new elements assign slots after deployment (handled by the evm with keccak256 hashing).
+* mappings: dynamic type with key hashes.
+	* for example, `mapping(address => int)` maps unsigned integers.
+ 	* the key type can be any built-in value type, bytes, string, or any contract.
+  	* value type can be any type including another mapping or an array.
+  	* mapping are not iterable: it's not possible to obtain a list of all keys of a mapping, nor a list of all values.
+
+
+<br>
+
+```
+contract Mapping {
+    // Mapping from address to uint
+    mapping(address => uint) public myMap;
+
+    function get(address _addr) public view returns (uint) {
+        // Mapping always returns a value.
+        // If the value was never set, it will return the default value.
+        return myMap[_addr];
+    }
+
+    function set(address _addr, uint _i) public {
+        // Update the value at this address
+        myMap[_addr] = _i;
+    }
+
+    function remove(address _addr) public {
+        // Reset the value to the default value.
+        delete myMap[_addr];
+    }
+}
+```
 
 <br>
 
@@ -658,7 +845,6 @@ contract Token is Mortal {
 	- `assert()`: causes a panic error and reverts if the condition is not met.
 	- `require()`: reverts if the condition is not met.
 	- `revert()`: abort execution and revert state changes.
-
 * errors can also provide information about a failed operations.
 * they are returned to the caller of the function:
 
@@ -694,6 +880,47 @@ contract IfElse {
     }
 }
 ````
+
+<br>
+
+----
+
+### for and while loops
+
+<br>
+
+```
+contract Loop {
+    function loop() public {
+        // FOR LOOP
+        for (uint i = 0; i < 10; i++) {
+            if (i == 3) {
+                // Silly example to show how to skip to next iteration
+                continue;
+            }
+            if (i == 5) {
+                // Exit loop
+                break;
+            }
+        }
+
+        // WHILE LOOP 
+        uint j;
+        while (j < 10) {
+            j++;
+        }
+    }
+}
+```
+
+
+
+
+
+
+
+
+
 
 
 
