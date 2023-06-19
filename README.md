@@ -19,6 +19,7 @@
 
 * **[tokens standard](advanced_knowledge/token_standards)**
 * **[vulnerabilities](https://github.com/go-outside-labs/blockchain-auditing/tree/main/advanced_expert/vulnerabilities)**
+* **[merkle_trees](advanced_knowledge/merkle_trees)**
 * **[abi encoding](advanced_knowledge/abi_encoding)**
 * **[saving gas](advanced_knowledge/saving_gas)**
 * **[calldata](advanced_knowledge/calldata)**
@@ -26,6 +27,8 @@
 * **[bitwise](advanced_knowledge/bitwise)**
 * **[wallets](advanced_knowledge/wallets)**
 * **[events](advanced_knowledge/events)**
+
+
 
   
 <br>
