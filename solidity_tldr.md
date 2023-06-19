@@ -865,9 +865,6 @@ contract E is X, Y {
 <br>
 
 ```
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
-
 contract ReceiveEther {
     /*
     Which function is called, fallback() or receive()?
@@ -932,8 +929,60 @@ contract SendEther {
 
 #### falback function
 
-* a contract can have ONE *fallback* function, which must have external visibility.
-* fallback is executed on a call to the contract if none of the other functions match the given function signature or no data was supplied and there is not received Ether function.
+* `fallback` is a special function that is executed on a call to the contract when:
+	* a function that does not exist is called (no function match the function signature).
+ 	* ether is sent directly to a contract but `receive()` does not exist or `msg.data` is not empty.
+* a contract can have only one `fallback` function, which must have `external` visibility.
+* `fallback` has 2300 gas limit when called by `transfer` or `send`.
+* `fallback` can take `bytes` for input or output.
+
+
+<br>
+
+```
+// TestFallbackInputOutput -> FallbackInputOutput -> Counter
+contract FallbackInputOutput {
+    address immutable target;
+
+    constructor(address _target) {
+        target = _target;
+    }
+
+    fallback(bytes calldata data) external payable returns (bytes memory) {
+        (bool ok, bytes memory res) = target.call{value: msg.value}(data);
+        require(ok, "call failed");
+        return res;
+    }
+}
+
+contract Counter {
+    uint public count;
+
+    function get() external view returns (uint) {
+        return count;
+    }
+
+    function inc() external returns (uint) {
+        count += 1;
+        return count;
+    }
+}
+
+contract TestFallbackInputOutput {
+    event Log(bytes res);
+
+    function test(address _fallback, bytes calldata data) external {
+        (bool ok, bytes memory res) = _fallback.call(data);
+        require(ok, "call failed");
+        emit Log(res);
+    }
+
+    function getTestData() external pure returns (bytes memory, bytes memory) {
+        return (abi.encodeCall(Counter.get, ()), abi.encodeCall(Counter.inc, ()));
+    }
+}
+```
+
 
 <br>
 
@@ -1452,9 +1501,6 @@ contract C is A {
 * all declared functions must be external.
 
 ```
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
-
 contract Counter {
     uint public count;
 
