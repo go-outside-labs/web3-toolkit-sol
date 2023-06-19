@@ -305,6 +305,17 @@ emit Sent(msg.sender, receiver, amount)
 
 <br>
 
+####  uint 
+
+* `uint` stands for unsigned integer, meaning non negative integers
+* different sizes are available:
+	* `uint8` ranges from `0 to 2 ** 8 - 1`
+  	* `uint16` ranges from `0 to 2 ** 16 - 1`
+	* `uint256` ranges from `0 to 2 ** 256 - 1`
+
+
+<br>
+
 #### address types
 
 * `address` holds a `20 byte` value (the size of an ethereum address).
