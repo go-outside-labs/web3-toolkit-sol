@@ -228,6 +228,11 @@ B's code is executed with contract A's storage, msg.sender and msg.value
 * the contract can dynamically load code (storage) from a different address at runtime, while current address and balance still refer to the calling contract.
 * when a contract is being created, the code is still empty. therefore, you should not call back into the contract under construction until the constuctor has finished executing.
 
+* you must keep two things in mind when using delegatecall:
+	* delegatecall preserves context (storage, caller, etc...)
+ 	* storage layout must be the same for the contract calling delegatecall and the contract getting called
+
+
 ```
 // NOTE: Deploy this contract first
 contract B {
