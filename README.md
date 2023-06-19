@@ -3,18 +3,14 @@
 
 <br>
 
-#### 👉 start with [solidity tl; dr](solidity_tldr.md)
 
-<br>
-
-
-----
 ### 🧰 dirs in this repo
 
 <br>
 
 ###### basic
 
+* **start with [solidity tl; dr](solidity_tldr.md)**
 * **[your workspace](basic_knowledge/workspace)**
 * **[boilerplates](basic_knowledge/boilerplates)**
 * **[foundry](basic_knowledge/foundry)**
