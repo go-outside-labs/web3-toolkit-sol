@@ -110,6 +110,12 @@
 
 <br>
 
+* `call` is a low level function to interact with other contracts.
+* it's the recommended method to use when just sending ether via callung the `fallback` function.
+* but it's not the recommended way to call existing functions:
+	* reverts are not bubbled up
+ 	* type checks are bypassed
+  	* function existence checks are ommited   
 * contracts can call other contracts or send ether to non-contract accounts by through **message calls** (`CALL` opcode).
 * they are similar to transactions, having a source, a target, data payload, ether, gas, and return data.
 * every transaction is actually a top-level message call which can create further messages calls.
@@ -126,8 +132,43 @@
 <br>
 
 * a variant is `DELEGATECALL`, where target code is executed within the context (address) of the calling contract, i.e., `msg.sender` and `msg.value` do not change.
+
+```
+when contract A executes delegatecall to contract B:
+B's code is executed with contract A's storage, msg.sender and msg.value
+```
+
 * the contract can dynamically load code (storage) from a different address at runtime, while current address and balance still refer to the calling contract.
 * when a contract is being created, the code is still empty. therefore, you should not call back into the contract under construction until the constuctor has finished executing.
+
+```
+// NOTE: Deploy this contract first
+contract B {
+    // NOTE: storage layout must be the same as contract A
+    uint public num;
+    address public sender;
+    uint public value;
+
+    function setVars(uint _num) public payable {
+        num = _num;
+        sender = msg.sender;
+        value = msg.value;
+    }
+}
+
+contract A {
+    uint public num;
+    address public sender;
+    uint public value;
+
+    function setVars(address _contract, uint _num) public payable {
+        // A's storage is set, B is not modified.
+        (bool success, bytes memory data) = _contract.delegatecall(
+            abi.encodeWithSignature("setVars(uint256)", _num)
+        );
+    }
+}
+```
 
 
 <br>
