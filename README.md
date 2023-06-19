@@ -22,8 +22,9 @@
 * **[abi encoding](advanced_knowledge/abi_encoding)**
 * **[calldata](advanced_knowledge/calldata)**
 * **[proxies](advanced_knowledge/proxies)**
+* **[bitwise](advanced_knowledge/bitwise)**
 * **[events](advanced_knowledge/events)**
-
+  
 <br>
 
 ---
