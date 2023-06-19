@@ -283,8 +283,9 @@
 <br>
 
 * **events** are an abstraction on top of EVM's logging, allowing clients to react to specific contract changes.
-* the feature called **logs** is used by solidity in order to implement events. emitting events cause the arguments to be stored in the transaction's log (which are associated with the address of the contract).
+* emitting events cause the arguments to be stored in the transaction's log (which are associated with the address of the contract).
 * contracts cannot access log data after it has been created, but they can be efficiently accessed from outside the blockchain (e.g., through bloom filters).
+* some use cases for events are: listening for events adn updating user interface or a cheap form of storage.
 * events are especially useful for light clients and DApp services, which can "watch" for specific events and report them to the user interface, or make a change in the state of the application to reflect an event in an underlying contract.
 * events are created with `event` and emitted with `emit`. for example, an example can be created with:
 
@@ -661,9 +662,67 @@ function destroy() public onlyOwner {
 
 #### constructors
 
-* constructor code is only run when the contract is created; it cannot be called afterwards.
+* a constructor is an optional function that only run when the contract is created (it cannot be called afterwards).
 * a global variable can be the assigned to the contractor creator by attributing `msg.sender` to it.
 * when a contract is created, the function with **constructor** is executed once and then the final code of the contract is stored on the blockchain (all public and external functions, but not the constructor code or internal functions called by it).
+
+<br>
+
+```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+// Base contract X
+contract X {
+    string public name;
+
+    constructor(string memory _name) {
+        name = _name;
+    }
+}
+
+// Base contract Y
+contract Y {
+    string public text;
+
+    constructor(string memory _text) {
+        text = _text;
+    }
+}
+
+// There are 2 ways to initialize parent contract with parameters.
+
+// Pass the parameters here in the inheritance list.
+contract B is X("Input to X"), Y("Input to Y") {
+
+}
+
+contract C is X, Y {
+    // Pass the parameters here in the constructor,
+    // similar to function modifiers.
+    constructor(string memory _name, string memory _text) X(_name) Y(_text) {}
+}
+
+// Parent constructors are always called in the order of inheritance
+// regardless of the order of parent contracts listed in the
+// constructor of the child contract.
+
+// Order of constructors called:
+// 1. X
+// 2. Y
+// 3. D
+contract D is X, Y {
+    constructor() X("X was called") Y("Y was called") {}
+}
+
+// Order of constructors called:
+// 1. X
+// 2. Y
+// 3. E
+contract E is X, Y {
+    constructor() Y("Y was called") X("X was called") {}
+}
+```
 
 <br>
 
