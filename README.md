@@ -25,9 +25,8 @@
 * **[saving gas](advanced_knowledge/saving_gas)**
 * **[abi encoding](advanced_knowledge/abi_encoding)**
 * **[calldata](advanced_knowledge/calldata)**
+* **[proxies](advanced_knowledge/proxies)**
 * **[events](advanced_knowledge/events)**
-
-
 
 <br>
 
