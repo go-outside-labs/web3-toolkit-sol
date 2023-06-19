@@ -18,8 +18,9 @@
 ###### advanced
 
 * **[tokens standard](advanced_knowledge/token_standards)**
-* **[saving gas](advanced_knowledge/saving_gas)**
+* **[vulnerabilities](https://github.com/go-outside-labs/blockchain-auditing/tree/main/advanced_expert/vulnerabilities)**
 * **[abi encoding](advanced_knowledge/abi_encoding)**
+* **[saving gas](advanced_knowledge/saving_gas)**
 * **[calldata](advanced_knowledge/calldata)**
 * **[proxies](advanced_knowledge/proxies)**
 * **[bitwise](advanced_knowledge/bitwise)**
