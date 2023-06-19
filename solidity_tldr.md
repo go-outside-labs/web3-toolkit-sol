@@ -816,6 +816,34 @@ contract Payable {
 
 <br>
 
+#### function selectors
+
+* when a function is called, the function selector (represented by the first 4 bytes of `calldata`) specifies which functions to call.
+* for instance, in the example below, `call` is used to execute `transfer` on a contract at the address `addr` and the first 4 bytes returned from `abi.encondeWithSignature()` is the function selector:
+
+```
+addr.call(abi.encodeWithSignature("transfer(address,uint256)", 0xSomeAddress, 123))
+```
+
+* you can save gas by precomputing and inline the function selector:
+
+```
+contract FunctionSelector {
+    /*
+    "transfer(address,uint256)"
+    0xa9059cbb
+    "transferFrom(address,address,uint256)"
+    0x23b872dd
+    */
+    function getSelector(string calldata _func) external pure returns (bytes4) {
+        return bytes4(keccak256(bytes(_func)));
+    }
+}
+```
+
+
+<br>
+
 #### overloading
 
 * a contract can have multiple functions of the same name but with different parameter types.
