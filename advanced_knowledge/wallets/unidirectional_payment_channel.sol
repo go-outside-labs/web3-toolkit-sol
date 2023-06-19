@@ -8,7 +8,7 @@ pragma solidity ^0.8.17;
 //   - Bob claims his payment by presenting the signed message to the smart contract.
 //   - If Bob does not claim his payment, Alice get her Ether back after the contract expires
 // This is called a uni-directional payment channel since the payment can go only in a single direction from Alice to Bob.
-*/
+
 
 import "github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v4.5/contracts/utils/cryptography/ECDSA.sol";
 import "github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v4.5/contracts/security/ReentrancyGuard.sol";
