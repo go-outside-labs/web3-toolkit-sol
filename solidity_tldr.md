@@ -305,6 +305,14 @@ emit Sent(msg.sender, receiver, amount)
 
 <br>
 
+* there are 3 types of variables in solidity:
+	* local: declared inside a function and not stored on the blockchain.
+ 	* state: declared outside a function and stored on the blockchain (`public`).
+  	* global: provides information about the blockchain (e.g., `block.timestamp` or `msg.sender`). 
+
+
+<br>
+
 ####  uint 
 
 * `uint` stands for unsigned integer, meaning non negative integers
@@ -358,8 +366,25 @@ bytes1 b = 0x56; //  [01010110]
 #### immutability
 
 * state variables can be declared as constant or immutable, so they cannot be modified after the contract has been constructed.
-	* for **constant variables**, the value is fixed at compile-time; for **immutable variables**, the value can still be assigned at construction time (in the constructor or point of declaration).
-	* for **constant variables**, the expression assigned is copied to all the places, and re-evaluated each time (local optimizations are possible). for **immutable variables**, the expression is evaluated once at constriction time and their value is copied to all the places in the code they are accessed, on a reserved `32 bytes`, becoming usually more expensive than constant.
+	* for **constant variables**, the value is fixed at compile-time.
+ 	* for **immutable variables**, the value can still be assigned at construction time (in the constructor or point of declaration).
+	* for **constant variables**, the expression assigned is copied to all the places, and re-evaluated each time (local optimizations are possible).
+ 	* for **immutable variables**, the expression is evaluated once at constriction time and their value is copied to all the places in the code they are accessed, on a reserved `32 bytes`, becoming usually more expensive than constant.
+* example:
+
+```
+contract Immutable {
+
+    address public immutable MY_ADDRESS;
+    uint public immutable MY_UINT;
+
+    constructor(uint _someUint) {
+        MY_ADDRESS = msg.sender;
+        MY_UINT = _someUint;
+    }
+
+}
+```
 
 <br>
 
