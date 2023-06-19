@@ -29,11 +29,70 @@
 ----
 
 
-### tricks to save gas
+### general tricks to save gas
 
 <br>
 
-#### small ones
+* replace `memory` with `calldata`
+* load state variable to memory
+* replace for loop `i++` with `++i`
+* caching array elements
+* short circuits
+
+<br>
+
+```
+// gas golf
+contract GasGolf {
+    // start - 50908 gas
+    // use calldata - 49163 gas
+    // load state variables to memory - 48952 gas
+    // short circuit - 48634 gas
+    // loop increments - 48244 gas
+    // cache array length - 48209 gas
+    // load array elements to memory - 48047 gas
+    // uncheck i overflow/underflow - 47309 gas
+
+    uint public total;
+
+    // start - not gas optimized
+    // function sumIfEvenAndLessThan99(uint[] memory nums) external {
+    //     for (uint i = 0; i < nums.length; i += 1) {
+    //         bool isEven = nums[i] % 2 == 0;
+    //         bool isLessThan99 = nums[i] < 99;
+    //         if (isEven && isLessThan99) {
+    //             total += nums[i];
+    //         }
+    //     }
+    // }
+
+    // gas optimized
+    // [1, 2, 3, 4, 5, 100]
+    function sumIfEvenAndLessThan99(uint[] calldata nums) external {
+        uint _total = total;
+        uint len = nums.length;
+
+        for (uint i = 0; i < len; ) {
+            uint num = nums[i];
+            if (num % 2 == 0 && num < 99) {
+                _total += num;
+            }
+            unchecked {
+                ++i;
+            }
+        }
+
+        total = _total;
+    }
+}
+```
+
+
+<br>
+
+---
+
+### other small tips
 
 <br>
 
@@ -51,7 +110,9 @@
 
 <br>
 
-#### pack variables
+---
+
+### pack variables
 
 The below code is an example of poor code and will consume 3 storage slot:
 
@@ -69,17 +130,23 @@ uint8 numberTwo;
 uint256 bigNumber;
 ```
 
+<br>
+
+---
 
 
-#### constant vs. immutable variables
+### constant vs. immutable variables
 
 Constant values can sometimes be cheaper than immutable values:
 
 - For a constant variable, the expression assigned to it is copied to all the places where it is accessed and also re-evaluated each time, allowing local optimizations.
 - Immutable variables are evaluated once at construction time and their value is copied to all the places in the code where they are accessed. For these values, 32 bytes are reserved, even if they would fit in fewer bytes. 
 
+<br>
 
-#### mappings are cheaper than Arrays
+---
+
+### mappings are cheaper than Arrays
 
 - avoid dynamically sized arrays
 - An array is not stored sequentially in memory but as a mapping.
@@ -87,22 +154,31 @@ Constant values can sometimes be cheaper than immutable values:
 - It’s cheaper to use arrays if you are using smaller elements like `uint8` which can be packed together.
 - You can’t get the length of a mapping or parse through all its elements, so depending on your use case, you might be forced to use an Array even though it might cost you more gas.
 
+<br>
 
-#### use bytes32 rather than string/bytes
+---
+
+### use bytes32 rather than string/bytes
 
 - If you can fit your data in 32 bytes, then you should use bytes32 datatype rather than bytes or strings as it is much cheaper in solidity.
 - Any fixed size variable in solidity is cheaper than variable size.
 
-#### modifiers
+<br>
+
+---
+
+### modifiers
 
 - For all the public functions, the input parameters are copied to memory automatically, and it costs gas.
 - If your function is only called externally, then you should explicitly mark it as external.
 - External function’s parameters are not copied into memory but are read from `calldata` directly.
 - internal and private are both cheaper than public and external when called from inside the contract in some cases.
 
+<br>
 
+---
 
-#### no need to initialize variables with default values
+### no need to initialize variables with default values
 
 - If a variable is not set/initialized, it is assumed to have the default value (0, false, 0x0 etc depending on the data type). If you explicitly initialize it with its default value, you are just wasting gas.
 
@@ -111,8 +187,11 @@ uint256 hello = 0; //bad, expensive
 uint256 world; //good, cheap
 ```
 
+<br>
 
-#### make use of single line swaps 
+---
+
+### make use of single line swaps 
 
 - This is space-efficient:
 
@@ -120,15 +199,20 @@ uint256 world; //good, cheap
 (hello, world) = (world, hello)
 ```
 
-#### negative gas costs
+<br>
+
+---
+
+### negative gas costs
 
 - Deleting a contract (SELFDESTRUCT) is worth a refund of 24,000 gas.
 - Changing a storage address from a nonzero value to zero (SSTORE[x] = 0) is worth a refund of 15,000 gas.
 
 <br>
 
+---
 
-#### [i ++](https://twitter.com/high_byte/status/1647080662094995457?s=20)
+### [i ++](https://twitter.com/high_byte/status/1647080662094995457?s=20)
 
 * instead of i++ you should write the ++ above the i.
 
@@ -149,13 +233,13 @@ while (true)
 
 <br>
 
-* [truffle contract size](https://github.com/IoBuilders/truffle-contract-size)
-* [foundry book on gas](https://book.getfoundry.sh/forge/gas-reports)
-* [solidity gas optimizations](https://mirror.xyz/haruxe.eth/DW5verFv8KsYOBC0SxqWORYry17kPdeS94JqOVkgxAA)
-* [hardhat on gas optimization](https://medium.com/@thelasthash/%EF%B8%8F-gas-optimization-with-hardhat-1e553eaea311)
-* [resources for gas optimization](https://github.com/kadenzipfel/gas-optimizations)
-* [awesome solidity gas optimization](https://github.com/iskdrews/awesome-solidity-gas-optimization)
-* [mev-toolkit resources](https://github.com/go-outside-labs/mev-toolkit/tree/main/MEV_searchers/code_resources/gas_optimization)
-* [how gas optimization can streamline your smart contracts](https://medium.com/@ayomilk1/maximizing-efficiency-how-gas-optimization-can-streamline-your-smart-contracts-4bafcc6bf321)
+* **[truffle contract size](https://github.com/IoBuilders/truffle-contract-size)**
+* **[foundry book on gas](https://book.getfoundry.sh/forge/gas-reports)**
+* **[solidity gas optimizations](https://mirror.xyz/haruxe.eth/DW5verFv8KsYOBC0SxqWORYry17kPdeS94JqOVkgxAA)**
+* **[hardhat on gas optimization](https://medium.com/@thelasthash/%EF%B8%8F-gas-optimization-with-hardhat-1e553eaea311)**
+* **[resources for gas optimization](https://github.com/kadenzipfel/gas-optimizations)**
+* **[awesome solidity gas optimization](https://github.com/iskdrews/awesome-solidity-gas-optimization)**
+* **[mev-toolkit resources](https://github.com/go-outside-labs/mev-toolkit/tree/main/MEV_searchers/code_resources/gas_optimization)**
+* **[how gas optimization can streamline smart contracts](https://medium.com/@ayomilk1/maximizing-efficiency-how-gas-optimization-can-streamline-your-smart-contracts-4bafcc6bf321)**
 
 
