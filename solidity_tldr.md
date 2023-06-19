@@ -312,6 +312,50 @@ emit Sent(msg.sender, receiver, amount)
  	* state: declared outside a function and stored on the blockchain (`public`).
   	* global: provides information about the blockchain (e.g., `block.timestamp` or `msg.sender`). 
 
+* in terms of the location of the data, variables are declared as either:
+	* storage: variable is a state variable (store on blockchain).
+ 	* memory: variable is in memory and it exists while a function is being called.
+  	* calldata: special data location that contains function arguments
+ 
+<br>
+
+```
+contract DataLocations {
+    uint[] public arr;
+    mapping(uint => address) map;
+    struct MyStruct {
+        uint foo;
+    }
+    mapping(uint => MyStruct) myStructs;
+
+    function f() public {
+        // call _f with state variables
+        _f(arr, map, myStructs[1]);
+
+        // get a struct from a mapping
+        MyStruct storage myStruct = myStructs[1];
+        // create a struct in memory
+        MyStruct memory myMemStruct = MyStruct(0);
+    }
+
+    function _f(
+        uint[] storage _arr,
+        mapping(uint => address) storage _map,
+        MyStruct storage _myStruct
+    ) internal {
+        // do something with storage variables
+    }
+
+    // You can return memory variables
+    function g(uint[] memory _arr) public returns (uint[] memory) {
+        // do something with memory array
+    }
+
+    function h(uint[] calldata _arr) external {
+        // do something with calldata array
+    }
+}
+```
 
 <br>
 
@@ -586,8 +630,12 @@ function destroy() public onlyOwner {
 
 #### function mutability specifiers
 
-- `view` functions can read the contract state but not modify it: enforced at runtime via `STATICALL` opcode.
-- `pure` functions can neither read a contract nor modify it.
+* getter functions can be declared `view` or `pure.
+* `view` functions declares that no state will be changed.
+	* they can read the contract state but not modify it.
+ 	* they are enforced at runtime via `STATICALL` opcode.
+* `pure` functions declare that no state variable will be changed or read.
+	* they can neither read a contract nor modify it.
 - only `view` can be enforced at the EVM level, not `pure`.
 
 <br>
@@ -709,6 +757,7 @@ assembly {
  	* the key type can be any built-in value type, bytes, string, or any contract.
   	* value type can be any type including another mapping or an array.
   	* mapping are not iterable: it's not possible to obtain a list of all keys of a mapping, nor a list of all values.
+  	* maps cannot be used for functions input or output.
 
 
 <br>
