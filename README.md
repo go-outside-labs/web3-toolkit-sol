@@ -17,6 +17,7 @@
 
 ###### advanced
 
+* **[applications contracts](advanced_knowledge/applications_contracts)**
 * **[tokens standard](advanced_knowledge/token_standards)**
 * **[vulnerabilities](https://github.com/go-outside-labs/blockchain-auditing/tree/main/advanced_expert/vulnerabilities)**
 * **[merkle_trees](advanced_knowledge/merkle_trees)**
