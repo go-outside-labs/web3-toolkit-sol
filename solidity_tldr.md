@@ -328,8 +328,16 @@ emit Sent(msg.sender, receiver, amount)
 
 #### fixed-size byte arrays
 
+* the data type `byte` represents a sequence of bytes.
+* there are two types: fixed-sized byte arrays and dynamically-sized byte arrays.
 * `bytes1`, `bytes2`, `bytes3`, ..., `bytes32` hold a sequence of bytes from one to up to `32`.
 * the type `byte[]` is an array of bytes that due to padding rules, wastes `31 bytes` of space for each element, therefore it's better to use `bytes()`.
+* example:
+
+```
+bytes1 a = 0xb5; //  [10110101]
+bytes1 b = 0x56; //  [01010110]
+```
 
 
 <br>
