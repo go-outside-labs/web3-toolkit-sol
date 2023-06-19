@@ -89,18 +89,70 @@
 
 ----
 
-### contract creation (`CREATE`)
+### contract creation (`CREATE`, `CREATE2`)
 
 <br>
 
-* the **creation of a contract** is a transaction where the **receiver address is empty** and its **data field contains compiled bytecode** (or calling `CREATE` opcode).
+* the **creation of a contract** is a transaction where the **receiver address is empty** and its **data field contains compiled bytecode** or calling `CREATE2` opcode.
+* the `new` keyword supports `CREATE2` feature by specifying `salt` options.
 * the data sent is executed as bytecode, initializing the state variables in storage and determining the body of the contract being created.
 * **contract memory** is a byte array, where data can be stored in `32 bytes (256 bit)` or `1 byte (8 bit)` chunks, reading in `32 bytes` chunks (through `MSTORE`, `MLOAD`, `MSTORE8`).
 
 <br>
 
-<img width="400" src="https://user-images.githubusercontent.com/1130416/219829883-c94c0a80-1101-462e-99fa-afbf7feb2b57.png">
+```
+contract Car {
+    address public owner;
+    string public model;
+    address public carAddr;
 
+    constructor(address _owner, string memory _model) payable {
+        owner = _owner;
+        model = _model;
+        carAddr = address(this);
+    }
+}
+
+contract CarFactory {
+    Car[] public cars;
+
+    function create(address _owner, string memory _model) public {
+        Car car = new Car(_owner, _model);
+        cars.push(car);
+    }
+
+    function createAndSendEther(address _owner, string memory _model) public payable {
+        Car car = (new Car){value: msg.value}(_owner, _model);
+        cars.push(car);
+    }
+
+    function create2(address _owner, string memory _model, bytes32 _salt) public {
+        Car car = (new Car){salt: _salt}(_owner, _model);
+        cars.push(car);
+    }
+
+    function create2AndSendEther(
+        address _owner,
+        string memory _model,
+        bytes32 _salt
+    ) public payable {
+        Car car = (new Car){value: msg.value, salt: _salt}(_owner, _model);
+        cars.push(car);
+    }
+
+    function getCar(
+        uint _index
+    )
+        public
+        view
+        returns (address owner, string memory model, address carAddr, uint balance)
+    {
+        Car car = cars[_index];
+
+        return (car.owner(), car.model(), car.carAddr(), address(car).balance);
+    }
+}
+```
 
 <br>
 
@@ -122,6 +174,41 @@
 * a contract can decide how much of its remaining gas should be sent with the inner message call and how much it wants to retain.
 * every call has a **sender**, a **recipient**, a **payload** (data), a **value** (in wei), and some **gas**.
 * message calls are limited to a depth of `1024`, which means that for more complex operations, loops should be preferred over recursive calls.
+* this is the recommended way of calling a contract:
+
+```
+contract Callee {
+    uint public x;
+    uint public value;
+
+    function setX(uint _x) public returns (uint) {
+        x = _x;
+        return x;
+    }
+
+    function setXandSendEther(uint _x) public payable returns (uint, uint) {
+        x = _x;
+        value = msg.value;
+
+        return (x, value);
+    }
+}
+
+contract Caller {
+    function setX(Callee _callee, uint _x) public {
+        uint x = _callee.setX(_x);
+    }
+
+    function setXFromAddress(address _addr, uint _x) public {
+        Callee callee = Callee(_addr);
+        callee.setX(_x);
+    }
+
+    function setXandSendEther(Callee _callee, uint _x) public payable {
+        (uint x, uint value) = _callee.setXandSendEther{value: msg.value}(_x);
+    }
+}
+```
 
 <br>
 
@@ -1305,6 +1392,69 @@ contract Error {
     }
 ```
 
+<br>
+
+* `try / catch` can only catch errors from external functions and contract creation.
+
+<br>
+
+```
+// External contract used for try / catch examples
+contract Foo {
+    address public owner;
+
+    constructor(address _owner) {
+        require(_owner != address(0), "invalid address");
+        assert(_owner != 0x0000000000000000000000000000000000000001);
+        owner = _owner;
+    }
+
+    function myFunc(uint x) public pure returns (string memory) {
+        require(x != 0, "require failed");
+        return "my func was called";
+    }
+}
+
+contract Bar {
+    event Log(string message);
+    event LogBytes(bytes data);
+
+    Foo public foo;
+
+    constructor() {
+        // This Foo contract is used for example of try catch with external call
+        foo = new Foo(msg.sender);
+    }
+
+    // Example of try / catch with external call
+    // tryCatchExternalCall(0) => Log("external call failed")
+    // tryCatchExternalCall(1) => Log("my func was called")
+    function tryCatchExternalCall(uint _i) public {
+        try foo.myFunc(_i) returns (string memory result) {
+            emit Log(result);
+        } catch {
+            emit Log("external call failed");
+        }
+    }
+
+    // Example of try / catch with contract creation
+    // tryCatchNewContract(0x0000000000000000000000000000000000000000) => Log("invalid address")
+    // tryCatchNewContract(0x0000000000000000000000000000000000000001) => LogBytes("")
+    // tryCatchNewContract(0x0000000000000000000000000000000000000002) => Log("Foo created")
+    function tryCatchNewContract(address _owner) public {
+        try new Foo(_owner) returns (Foo foo) {
+            // you can use variable foo here
+            emit Log("Foo created");
+        } catch Error(string memory reason) {
+            // catch failing revert() and require()
+            emit Log(reason);
+        } catch (bytes memory reason) {
+            // catch failing assert()
+            emit LogBytes(reason);
+        }
+    }
+}
+```
 
 <br>
 
@@ -1624,8 +1774,97 @@ contract UniswapExample {
 
 <br>
 
+----
 
+### libraries
 
+<br>
+
+* libraries are similar to contracts, but you can't declare any state variable and can't send ether.
+* a library is embedded into the contract if all library functions are internal, otherwise the library must be deployed and then linked before the contract is deployed.
+
+<br>
+
+----
+
+### ABI encode and decode
+
+* `abi.encode` encodes data into bytes.
+
+<br>
+
+```
+interface IERC20 {
+    function transfer(address, uint) external;
+}
+
+contract Token {
+    function transfer(address, uint) external {}
+}
+
+contract AbiEncode {
+    function test(address _contract, bytes calldata data) external {
+        (bool ok, ) = _contract.call(data);
+        require(ok, "call failed");
+    }
+
+    function encodeWithSignature(
+        address to,
+        uint amount
+    ) external pure returns (bytes memory) {
+        // Typo is not checked - "transfer(address, uint)"
+        return abi.encodeWithSignature("transfer(address,uint256)", to, amount);
+    }
+
+    function encodeWithSelector(
+        address to,
+        uint amount
+    ) external pure returns (bytes memory) {
+        // Type is not checked - (IERC20.transfer.selector, true, amount)
+        return abi.encodeWithSelector(IERC20.transfer.selector, to, amount);
+    }
+
+    function encodeCall(address to, uint amount) external pure returns (bytes memory) {
+        // Typo and type errors will not compile
+        return abi.encodeCall(IERC20.transfer, (to, amount));
+    }
+}
+```
+
+<br>
+
+* `abi.decode` decodes bytes back into data.
+
+<br>
+
+```
+contract AbiDecode {
+    struct MyStruct {
+        string name;
+        uint[2] nums;
+    }
+
+    function encode(
+        uint x,
+        address addr,
+        uint[] calldata arr,
+        MyStruct calldata myStruct
+    ) external pure returns (bytes memory) {
+        return abi.encode(x, addr, arr, myStruct);
+    }
+
+    function decode(
+        bytes calldata data
+    )
+        external
+        pure
+        returns (uint x, address addr, uint[] memory arr, MyStruct memory myStruct)
+    {
+        // (uint x, address addr, uint[] memory arr, MyStruct myStruct) = ...
+        (x, addr, arr, myStruct) = abi.decode(data, (uint, address, uint[], MyStruct));
+    }
+}
+```
 
 
 
