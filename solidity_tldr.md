@@ -2,7 +2,7 @@
 
 <br>
 
-#### *a smart contract is a collection of code (functions) and data (state) on the ethereum blockchain.*
+#### ✨ *a smart contract is a collection of code (functions) and data (state) on the ethereum blockchain.*
 
 <br>
 
@@ -26,11 +26,13 @@
 
 <br>
 
-* each transaction is charged with some gas that has to be paid for by the originator (`tx.origin`).
-* if the gas is used up at any point, an out-of-gas exception is triggered, ending execution and reverting all modifications made to the state in the current call frame.
+* gas is a unit of computation. each transaction is charged with some gas that has to be paid for by the originator (`tx.origin`).
+* gas spent is the total amount of gas used in a transaction. if the gas is used up at any point, an out-of-gas exception is triggered, ending execution and reverting all modifications made to the state in the current call frame.
 * since each block has a maximum amount of gas, it also limits the amount of work needed to validate a block.
-* the gas price is set by the originator of the transaction, who has to pay `gas_price * gas` upfront to the EVM executor. any gas left is refunded to the transaction originator. exceptions that revert changes do not refund gas.
-  
+* gas price is how much ether you are willing to pay for gas. it's set by the originator of the transaction, who has to pay `gas_price * gas` upfront to the EVM executor. any gas left is refunded to the transaction originator. exceptions that revert changes do not refund gas.
+* there are two upper bounds for the amount of gas you can spend:
+	- gas limit: max amount of gas you are willing to use for your transaction, set by you.
+ 	- block gas limit: max amount of gas allowed in a block, set by the network.   
 
 <br>
 
@@ -305,6 +307,69 @@ emit Sent(msg.sender, receiver, amount)
 
 <br>
 
+* there are 3 types of variables in solidity:
+	* local: declared inside a function and not stored on the blockchain.
+ 	* state: declared outside a function and stored on the blockchain (`public`).
+  	* global: provides information about the blockchain (e.g., `block.timestamp` or `msg.sender`). 
+
+* in terms of the location of the data, variables are declared as either:
+	* storage: variable is a state variable (store on blockchain).
+ 	* memory: variable is in memory and it exists while a function is being called.
+  	* calldata: special data location that contains function arguments
+ 
+<br>
+
+```
+contract DataLocations {
+    uint[] public arr;
+    mapping(uint => address) map;
+    struct MyStruct {
+        uint foo;
+    }
+    mapping(uint => MyStruct) myStructs;
+
+    function f() public {
+        // call _f with state variables
+        _f(arr, map, myStructs[1]);
+
+        // get a struct from a mapping
+        MyStruct storage myStruct = myStructs[1];
+        // create a struct in memory
+        MyStruct memory myMemStruct = MyStruct(0);
+    }
+
+    function _f(
+        uint[] storage _arr,
+        mapping(uint => address) storage _map,
+        MyStruct storage _myStruct
+    ) internal {
+        // do something with storage variables
+    }
+
+    // You can return memory variables
+    function g(uint[] memory _arr) public returns (uint[] memory) {
+        // do something with memory array
+    }
+
+    function h(uint[] calldata _arr) external {
+        // do something with calldata array
+    }
+}
+```
+
+<br>
+
+####  uint 
+
+* `uint` stands for unsigned integer, meaning non negative integers
+* different sizes are available:
+	* `uint8` ranges from `0 to 2 ** 8 - 1`
+  	* `uint16` ranges from `0 to 2 ** 16 - 1`
+	* `uint256` ranges from `0 to 2 ** 256 - 1`
+
+
+<br>
+
 #### address types
 
 * `address` holds a `20 byte` value (the size of an ethereum address).
@@ -315,10 +380,67 @@ emit Sent(msg.sender, receiver, amount)
 
 <br>
 
-#### fixed-size byte arrays
+#### arrays and byte arrays
 
-* `bytes1`, `bytes2`, `bytes3`, ..., `bytes32` hold a sequence of bytes from one to up to `32`.
+* they can be two types: **fixed-sized arrays** and **dynamically-sized arrays**.
+
+```
+contract Array {
+    // Several ways to initialize an array
+    uint[] public arr;
+    uint[] public arr2 = [1, 2, 3];
+    // Fixed sized array, all elements initialize to 0
+    uint[10] public myFixedSizeArr;
+
+    function get(uint i) public view returns (uint) {
+        return arr[i];
+    }
+
+    // Solidity can return the entire array.
+    // But this function should be avoided for
+    // arrays that can grow indefinitely in length.
+    function getArr() public view returns (uint[] memory) {
+        return arr;
+    }
+
+    function push(uint i) public {
+        // Append to array
+        // This will increase the array length by 1.
+        arr.push(i);
+    }
+
+    function pop() public {
+        // Remove last element from array
+        // This will decrease the array length by 1
+        arr.pop();
+    }
+
+    function getLength() public view returns (uint) {
+        return arr.length;
+    }
+
+    function remove(uint index) public {
+        // Delete does not change the array length.
+        // It resets the value at index to it's default value,
+        // in this case 0
+        delete arr[index];
+    }
+
+    function examples() external {
+        // create array in memory, only fixed size can be created
+        uint[] memory a = new uint[](5);
+    }
+}
+```
+
+* the data type `byte` represents a sequence of bytes.
+* `bytes1`, `bytes2`, `bytes3`, ... `bytes32` hold a sequence of bytes from one to up to `32`.
 * the type `byte[]` is an array of bytes that due to padding rules, wastes `31 bytes` of space for each element, therefore it's better to use `bytes()`.
+
+```
+bytes1 a = 0xb5; //  [10110101]
+bytes1 b = 0x56; //  [01010110]
+```
 
 
 <br>
@@ -326,6 +448,26 @@ emit Sent(msg.sender, receiver, amount)
 #### state variables
 
 * variables that can be accessed by all functions of the contract and values are permanently stored in the contract storage.
+
+```
+contract SimpleStorage {
+    // State variable
+    uint public num;
+
+    // You need to send a transaction to write to a state variable
+    function set(uint _num) public {
+        num = _num;
+    }
+
+    // You can read from a state variable without sending a transaction
+    function get() public view returns (uint) {
+        return num;
+    }
+}
+```
+
+<br>
+
 * **state visibility specifiers** define how the methods will be accessed:
 	- `public`: part of the contract interface and can be accessed internally or via messages (i.e., can be accessed from other contracts).
 	- `external`: like public functions, but cannot be called within the contract. an external function `func` cannot be called internally: `func()` does not work but `this.func()` does.
@@ -336,11 +478,133 @@ emit Sent(msg.sender, receiver, amount)
 
 <br>
 
+#### enum
+
+<br>
+
+* enumerables are usefyl to model choice and keep track of a state.
+* they can be declared outside of a contract.
+
+<br>
+
+```
+contract Enum {
+    enum Status {
+        Pending,
+        Shipped,
+        Accepted,
+        Rejected,
+        Canceled
+    }
+
+    // Default value is the first element listed in
+    // definition of the type, in this case "Pending"
+    Status public status;
+
+    function get() public view returns (Status) {
+        return status;
+    }
+
+    // Update status by passing uint into input
+    function set(Status _status) public {
+        status = _status;
+    }
+
+    // You can update to a specific enum like this
+    function cancel() public {
+        status = Status.Canceled;
+    }
+
+    // delete resets the enum to its first value, 0
+    function reset() public {
+        delete status;
+    }
+}
+```
+
+<br>
+
+
+
+#### structs
+
+<br>
+
+* you can define your own type by creating a `struct`, and they are usful for grouping together related data.
+* structs can be declared outside of a contract and imported in another contract.
+
+```
+contract Todos {
+    struct Todo {
+        string text;
+        bool completed;
+    }
+
+    // An array of 'Todo' structs
+    Todo[] public todos;
+
+    function create(string calldata _text) public {
+        // 3 ways to initialize a struct:
+
+        // 1. calling it like a function
+        todos.push(Todo(_text, false));
+
+        // 2. key value mapping
+        todos.push(Todo({text: _text, completed: false}));
+
+        // 3. initialize an empty struct and then update it
+        Todo memory todo;
+        todo.text = _text;
+        // todo.completed initialized to false
+
+        todos.push(todo);
+    }
+
+    // Solidity automatically created a getter for 'todos' so
+    // you don't actually need this function.
+    function get(uint _index) public view returns (string memory text, bool completed) {
+        Todo storage todo = todos[_index];
+        return (todo.text, todo.completed);
+    }
+
+    // update text
+    function updateText(uint _index, string calldata _text) public {
+        Todo storage todo = todos[_index];
+        todo.text = _text;
+    }
+
+    // update completed
+    function toggleCompleted(uint _index) public {
+        Todo storage todo = todos[_index];
+        todo.completed = !todo.completed;
+    }
+}
+```
+
+<br>
+
 #### immutability
 
 * state variables can be declared as constant or immutable, so they cannot be modified after the contract has been constructed.
-	* for **constant variables**, the value is fixed at compile-time; for **immutable variables**, the value can still be assigned at construction time (in the constructor or point of declaration).
-	* for **constant variables**, the expression assigned is copied to all the places, and re-evaluated each time (local optimizations are possible). for **immutable variables**, the expression is evaluated once at constriction time and their value is copied to all the places in the code they are accessed, on a reserved `32 bytes`, becoming usually more expensive than constant.
+	* for **constant variables**, the value is fixed at compile-time.
+ 	* for **immutable variables**, the value can still be assigned at construction time (in the constructor or point of declaration).
+	* for **constant variables**, the expression assigned is copied to all the places, and re-evaluated each time (local optimizations are possible).
+ 	* for **immutable variables**, the expression is evaluated once at constriction time and their value is copied to all the places in the code they are accessed, on a reserved `32 bytes`, becoming usually more expensive than constant.
+* example:
+
+```
+contract Immutable {
+
+    address public immutable MY_ADDRESS;
+    uint public immutable MY_UINT;
+
+    constructor(uint _someUint) {
+        MY_ADDRESS = msg.sender;
+        MY_UINT = _someUint;
+    }
+
+}
+```
 
 <br>
 
@@ -366,8 +630,12 @@ function destroy() public onlyOwner {
 
 #### function mutability specifiers
 
-- `view` functions can read the contract state but not modify it: enforced at runtime via `STATICALL` opcode.
-- `pure` functions can neither read a contract nor modify it.
+* getter functions can be declared `view` or `pure.
+* `view` functions declares that no state will be changed.
+	* they can read the contract state but not modify it.
+ 	* they are enforced at runtime via `STATICALL` opcode.
+* `pure` functions declare that no state variable will be changed or read.
+	* they can neither read a contract nor modify it.
 - only `view` can be enforced at the EVM level, not `pure`.
 
 <br>
@@ -474,14 +742,48 @@ assembly {
 * storage a key-value mapping of `2**256 `slots of 32 bytes each.
 * gas to save data into storage is one of the highest operations.
 * the evm opcodes are: `SLOAD` (loads a word from storage to stack), `SSTORE` (saves a word to storage).
-* bitpack loading: storing multiple variables in a single `32-bytes` slot by ordering the byte size.
-* fixed-length arrays: takes a predetermined amount of slots.
-* dynamic-length arrays: new elements assign slots after deployment (handled by the evm with keccak256 hashing).
-* mappings: dynamic type with key hashes. for example, `mapping(address => int)` maps unsigned integers.
-* however, it is neither possible to obtain a list of all keys of a mapping, nor a list of all values.
 * it's costly to read, initialise, and modify storage.
 * a contract cannot read or write to any storage apart from its own.
 
+<br>
+
+#### type of storages
+
+* bitpack loading: storing multiple variables in a single `32-bytes` slot by ordering the byte size.
+* fixed-length arrays: takes a predetermined amount of slots.
+* dynamic-length arrays: new elements assign slots after deployment (handled by the evm with keccak256 hashing).
+* mappings: dynamic type with key hashes.
+	* for example, `mapping(address => int)` maps unsigned integers.
+ 	* the key type can be any built-in value type, bytes, string, or any contract.
+  	* value type can be any type including another mapping or an array.
+  	* mapping are not iterable: it's not possible to obtain a list of all keys of a mapping, nor a list of all values.
+  	* maps cannot be used for functions input or output.
+
+
+<br>
+
+```
+contract Mapping {
+    // Mapping from address to uint
+    mapping(address => uint) public myMap;
+
+    function get(address _addr) public view returns (uint) {
+        // Mapping always returns a value.
+        // If the value was never set, it will return the default value.
+        return myMap[_addr];
+    }
+
+    function set(address _addr, uint _i) public {
+        // Update the value at this address
+        myMap[_addr] = _i;
+    }
+
+    function remove(address _addr) public {
+        // Reset the value to the default value.
+        delete myMap[_addr];
+    }
+}
+```
 
 <br>
 
@@ -592,12 +894,83 @@ contract Token is Mortal {
 	- `assert()`: causes a panic error and reverts if the condition is not met.
 	- `require()`: reverts if the condition is not met.
 	- `revert()`: abort execution and revert state changes.
-
 * errors can also provide information about a failed operations.
 * they are returned to the caller of the function:
 
 ```
 error InsufficientBalance(uint requested, uint available);
 ```
+
+<br>
+
+----
+
+### if / else
+
+<br>
+
+```
+contract IfElse {
+
+    function foo(uint x) public pure returns (uint) {
+        if (x < 10) {
+            return 0;
+        } else if (x < 20) {
+            return 1;
+        } else {
+            return 2;
+        }
+    }
+
+    function ternary(uint _x) public pure returns (uint) {
+        // shorthand way to write if / else statement
+        // the "?" operator is called the ternary operator
+        return _x < 10 ? 1 : 2;
+    }
+}
+````
+
+<br>
+
+----
+
+### for and while loops
+
+<br>
+
+```
+contract Loop {
+    function loop() public {
+        // FOR LOOP
+        for (uint i = 0; i < 10; i++) {
+            if (i == 3) {
+                // Silly example to show how to skip to next iteration
+                continue;
+            }
+            if (i == 5) {
+                // Exit loop
+                break;
+            }
+        }
+
+        // WHILE LOOP 
+        uint j;
+        while (j < 10) {
+            j++;
+        }
+    }
+}
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
