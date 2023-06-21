@@ -148,23 +148,23 @@ contract Caller {
 
 <br>
 
-* a variant is `DELEGATECALL`, where target code is executed within the context (address) of the calling contract, i.e., `msg.sender` and `msg.value` do not change.
+* `DELEGATECALL` preserves context (storage, caller, etc...) of the origing contract, where target code is executed within this context (`address`). therefore, `msg.sender` and `msg.value` do not change.
 
 ```
 when contract A executes delegatecall to contract B:
 B's code is executed with contract A's storage, msg.sender and msg.value
 ```
 
-* the contract can dynamically load code (storage) from a different address at runtime, while the current address and balance still refer to the calling contract.
-* when a contract is being created, the code is still empty. therefore, you should not call back into the contract under construction until the constuctor has finished executing.
+* **storage layout must be the same** for the contract calling delegatecall and the contract getting called.
 
-* you must keep two things in mind when using delegatecall:
-	* delegatecall preserves context (storage, caller, etc...)
- 	* storage layout must be the same for the contract calling delegatecall and the contract getting called
+* the contract can **dynamically load code (storage) from a different address at runtime**, while the **current address and balance still refer to the calling contract**.
 
+* when a contract is being created, the code is still empty. the contract is under construction until the constuctor has finished executing.
+
+<br>
 
 ```
-// NOTE: Deploy this contract first
+// 1. Deploy this contract first
 contract B {
     // NOTE: storage layout must be the same as contract A
     uint public num;
@@ -212,7 +212,7 @@ contract A {
 <br>
 
 * when a contract is executed in the EVM, it has access to a small set of global objects: `block`, `msg`, and `tx` objects.
-* in addition, solidity exposes a [number of EVM opcodes](https://ethereum.org/en/developers/docs/evm/opcodes/) as predefined functions.
+* in addition, solidity exposes a **[number of EVM opcodes](https://ethereum.org/en/developers/docs/evm/opcodes/) as predefined functions.
 * all instructions operate on the basic data type, `256-bit` words or on slices of memory (and other byte arrays).
 * the usual arithmetic, bit, logical, and comparison operations are present, and conditional and unconditional jumps are possible.
 
