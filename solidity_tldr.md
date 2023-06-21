@@ -131,12 +131,12 @@
 <br>
 
 * variables are declared as either:
-	* storage: variable is a state variable (stored on the blockchain).
+	* **storage**: variable is a state variable (stored on the blockchain).
  		* solidity storage is an array of length `2^256`.
      		* each slot in the array can store 32 bytes.
        		* order of declaration and the type of state variables define which slots it will use, unless you use assembly, then you can write to any slot. 
- 	* memory: variable is in memory and it exists while a function is being called.
-  	* calldata: special data location that contains function arguments
+	* **memory**: variable is in memory and it exists while a function is being called.
+	* **calldata**: special data location that contains function arguments.
  
 <br>
 
@@ -194,7 +194,7 @@ contract DataLocations {
 
 <br>
 
-#### msg
+#### `msg`
 
 <br>
 
@@ -207,7 +207,7 @@ contract DataLocations {
 
 <br>
 
-#### tx
+#### `tx`
 
 <br>
 
@@ -216,7 +216,7 @@ contract DataLocations {
 
 <br>
 
-#### block
+#### `block`
 
 <br>
 
@@ -256,7 +256,7 @@ contract DataLocations {
 
 <br>
 
-##### built-in functions
+#### built-in functions
 
 * `this`:
 	* address of the currently executing contract account.
@@ -333,13 +333,13 @@ hashToBeSuppliedToEcrecover = keccak256(abi.encodePacked("\x19Ethereum Signed Me
 
 * **pragmas** directives are used to enable certain compiler features and checks. 
 * `version Pragma` indicates the specific solidity compiler version.
-* it does not change the version of the compiler, though. you will get an error if it does not match the compiler.
+* it does not change the version of the compiler, though (get an error if it does not match the compiler).
 
 <br>
 
 
 
-##### natspec comments
+#### natspec comments
 
 <br>
 
@@ -388,6 +388,8 @@ emit Sent(msg.sender, receiver, amount)
 
 ####  uint 
 
+<br>
+
 * `uint` stands for unsigned integer, meaning non-negative integers.
 * different sizes are available:
 	* `uint8` ranges from `0 to 2 ** 8 - 1`
@@ -400,11 +402,17 @@ emit Sent(msg.sender, receiver, amount)
 
 #### arrays and byte arrays
 
+<br>
+
 * they can be two types: **fixed-sized arrays** and **dynamically-sized arrays**.
+
+<br>
 
 ```
 contract Array {
-    // Several ways to initialize an array
+    //////////////////////////////////////// 
+    // Several ways to initialize an array.
+    //////////////////////////////////////// 
     uint[] public arr;
     uint[] public arr2 = [1, 2, 3];
     // Fixed sized array, all elements initialized to 0
@@ -414,29 +422,39 @@ contract Array {
         return arr[i];
     }
 
-    // Solidity can return the entire array.
-    // But this function should be avoided for
-    // arrays that can grow indefinitely in length.
+    ///////////////////////////////////////////////
+    // Arrays that can grow indefinitely in length.
+    ///////////////////////////////////////////////
     function getArr() public view returns (uint[] memory) {
         return arr;
     }
 
+    ////////////////////////////////////////////////////
+    // Append to array and decrease the array len by 1.
+    ///////////////////////////////////////////////////
     function push(uint i) public {
-        // Append to array
-        // This will increase the array length by 1.
         arr.push(i);
     }
 
+    //////////////////////////////////////////////////////////////////
+    // Remove last element from array and decrease the array len by 1.
+    //////////////////////////////////////////////////////////////////
     function pop() public {
         // Remove last element from array
         // This will decrease the array length by 1
         arr.pop();
     }
 
+    //////////////////////
+    // Get array length.
+    //////////////////////
     function getLength() public view returns (uint) {
         return arr.length;
     }
 
+    //////////////////////
+    // Get array length.
+    //////////////////////
     function remove(uint index) public {
         // Delete does not change the array length.
         // It resets the value at index to it's default value,
@@ -444,16 +462,23 @@ contract Array {
         delete arr[index];
     }
 
+    ///////////////////////////////////
+    // Get an array in memory.
+    // Only fixed size can be created.
+    ///////////////////////////////////
     function examples() external {
-        // create array in memory, only fixed size can be created
         uint[] memory a = new uint[](5);
     }
 }
 ```
 
+<br>
+
 * the data type `byte` represents a sequence of bytes.
 * `bytes1`, `bytes2`, `bytes3`, ... `bytes32` hold a sequence of bytes from one to up to `32`.
 * the type `byte[]` is an array of bytes that due to padding rules, wastes `31 bytes` of space for each element, therefore it's better to use `bytes()`.
+
+<br>
 
 ```
 bytes1 a = 0xb5; //  [10110101]
