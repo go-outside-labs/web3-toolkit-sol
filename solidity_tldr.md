@@ -47,7 +47,7 @@
 
 <br>
 
-* until ([account abstraction](https://github.com/go-outside-labs/mev-toolkit/tree/main/MEV_by_chains/MEV_on_Ethereum/account_abstraction) becomes a thing, there are two types of accounts in ethereum: **external accounts** (controlled by a pub-priv key pair and with empty code and storage) and **contract accounts** (controlled by code stored with the account and containing bytecode).
+* until (**[account abstraction](https://github.com/go-outside-labs/mev-toolkit/tree/main/MEV_by_chains/MEV_on_Ethereum/account_abstraction)** becomes a thing, there are two types of accounts in ethereum: **external accounts** (controlled by a pub-priv key pair and with empty code and storage) and **contract accounts** (controlled by code stored with the account and containing bytecode).
 * these accounts are identified by:
 	* an address of **160-bit length** (rightmost 20 bytes of the **keccak hash** of the RLP encoding of the structure with the sender and the nonce).
  	* a **balance**: in wei, where `1 ether` = `10**18 wei`.
@@ -64,14 +64,14 @@
 
 <br>
 
-* as a blockchain is a globally shared transactional database, a transaction is a message that is sent from one account to another.
+* as a blockchain is a **globally shared transactional database**, a transaction is a message that is sent from one account to another.
 * anyone can create a transaction to change something in this database.
-* a transaction is always cryptographically signed by the sender (creator).
-* it can include binary data (payload) and ether.
-* if the target account contains code, that code is executed and the payload is provided as input data.
-* if the target account is not set (e.g., the transaction does not have a recipient or the recipient is set to `null`), the transaction creates a new contract.
-* the address of a contract is not the zero address, but an address derived from the sender and its nonce.
-* the output data of this execution is stored as the code contract, i.e., to create a contract, you don't send the actual code of the contract, but instead a code that returns the code when executed.
+* a transaction is **always cryptographically signed by the sender (creator)**.
+* a transaction can include **binary data (payload)** and **ether**.
+* if the **target account contains code**, that **code is executed and the payload is provided as input data**.
+* if the **target account is not set** (*e.g.*, the transaction does not have a recipient or the recipient is set to `null`), the **transaction creates a new contract**.
+* the address of a new contract is not the zero address, but an **address derived from the sender and its nonce**.
+* the output data of the contract execution is stored as the code contract, *i.e.*, to create a contract, **you don't send the actual code of the contract, but instead a code that returns the code when executed**.
 
 <br>
 
