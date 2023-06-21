@@ -82,7 +82,8 @@
 * a transaction is always cryptographically signed by the sender (creator).
 * it can include binary data (payload) and ether.
 * if the target account contains code, that code is executed and the payload is provided as input data.
-* if the target account is not set (e.g., the transaction does not have a recipient or the recipient is set to `null`), the transaction creates a new contract. the adddres of that contract is not the zero address, but an address derived from the sender and its nonce.
+* if the target account is not set (e.g., the transaction does not have a recipient or the recipient is set to `null`), the transaction creates a new contract.
+* the adddres of a contract is not the zero address, but an address derived from the sender and its nonce.
 * the output data of this execution is stored as the code contract, i.e., to create a contract, you don't send the actual code of the contract, but instead a code that returns the code when executed.
 
 <br>
@@ -266,6 +267,16 @@ contract A {
 <br>
 
 ------
+
+### variable scopes
+
+* `local`, declared and used inside functions and not stored on blockchain.
+* `state`, declared in the contract scope, stored on blockchain.
+* `global`, accessed by all (*e.g.,* `msg.sender`, `block.timestamp`)
+
+<br>
+
+----
 
 ### predefined global variables and opcodes
 
@@ -551,7 +562,7 @@ contract DataLocations {
 #### address types
 
 * `address` holds a `20 byte` value (the size of an ethereum address).
-* they can be payable, i.e., with additional members transfer and send. address payable is an address you can send ether to (while plain address not).
+* `address payable` is an address you can send ether to (while plain address not), and comes with additional members `transfer` and `send`.
 * explicit conversion from address to address payable can be done with `payable()`.
 * explicit conversion from or to address is allowed for `uint160`, integer literals, `byte20`, and contract types.
 * the members of address type are: `.balance`, `.code`, `.codehash`, `.transfer`, `.send`, `.call`, `.delegatecall`, `.staticcall`.
@@ -774,6 +785,7 @@ contract Enum {
 <br>
 
 * `structs` are custom-defined types that can group several variables of same/different types together to create a custom data structure.
+* they are a type byt also just a template (they need to be declared somewhere else such as a mapping or somthing to instantiate the actual variable).
 * you can define your own type by creating a `struct`, and they are usful for grouping together related data.
 * structs can be declared outside of a contract and imported in another contract.
 
@@ -1261,6 +1273,7 @@ assembly {
 * dynamic-length arrays: new elements assign slots after deployment (handled by the evm with keccak256 hashing).
 * mappings: dynamic type with key hashes.
 	* for example, `mapping(address => int)` maps unsigned integers.
+ 	* can only be defined in storage (*i.e.,* state variables). memory does not allow mappings even if they are inside a `struct`. 
  	* the key type can be any built-in value type, bytes, string, or any contract.
   	* value type can be any type including another mapping or an array.
   	* mapping are not iterable: it's not possible to obtain a list of all keys of a mapping, nor a list of all values.
@@ -2103,6 +2116,14 @@ contract VerifySignature {
 
 <br>
 
+---
+
+### final consideration and tricks
+
+<br>
+
+* you can compare two dynamic length `bytes` or `string` by using `keccak256(abi.encodePacked(s1)) == keccak256(abi.encodePacked(s2))`.
+* string does not have length property to access it's length. to make it usable in code that relies on length, cast it to `byte`s with `bytes(string)`.
 
 
 
