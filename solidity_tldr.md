@@ -73,7 +73,7 @@
 
 ------
 
-### solidity
+### solidity basics
 
 <br>
 
@@ -418,6 +418,9 @@ contract Array {
     // Fixed sized array, all elements initialized to 0
     uint[10] public myFixedSizeArr;
 
+    //////////////////////////////// 
+    // Get an element in the array.
+    //////////////////////////////// 
     function get(uint i) public view returns (uint) {
         return arr[i];
     }
@@ -490,7 +493,11 @@ bytes1 b = 0x56; //  [01010110]
 
 #### state variables
 
-* variables that can be accessed by all functions of the contract and values are permanently stored in the contract storage.
+<br>
+
+* variables that can be accessed by all functions of the contract and values are **permanently stored in the contract storage.**
+
+  <br>
 
 ```
 contract SimpleStorage {
@@ -512,7 +519,6 @@ contract SimpleStorage {
 <br>
 
 * state variables can be declared as `public`, `private`, or `internal`, but not `external`.
-
 
 
 <br>
@@ -583,24 +589,25 @@ contract Child is Base {
 }
 ```
 
-##### what is considered modifying state
-
-- writing to state variables
-- emitting events
-- creating other contracts
-- sending ether via calls
-- using selfdestruct
-- using low-level calls
-- calling any function not marked `view` or `pure`
-- using inline assembly that contains certain opcodes
+#### what is considered modifying state
 
 <br>
+
+- writing to state variables.
+- emitting events.
+- creating other contracts.
+- sending ether via calls.
+- using selfdestruct.
+- using low-level calls.
+- calling any function not marked `view` or `pure`.
+- using inline assembly that contains certain opcodes.
 
 
 <br>
 
 #### enum
 
+<br>
 
 * enumerables are useful to model choice and keep track of a state.
 * they are used to create custom types with a finite set of constants values.
@@ -657,6 +664,8 @@ contract Enum {
 * you can define your own type by creating a `struct`, and they are useful for grouping together related data.
 * structs can be declared outside of a contract and imported into another contract.
 
+<br>
+
 ```
 contract Todos {
     struct Todo {
@@ -709,8 +718,6 @@ contract Todos {
 
 <br>
 
----
-
 
 ### immutability
 
@@ -722,6 +729,8 @@ contract Todos {
 	* for **constant variables**, the expression assigned is copied to all the places, and re-evaluated each time (local optimizations are possible).
  	* for **immutable variables**, the expression is evaluated once at constriction time and their value is copied to all the places in the code they are accessed, on a reserved `32 bytes`, becoming usually more expensive than constant.
 * example:
+
+<br>
 
 ```
 contract Immutable {
@@ -741,7 +750,7 @@ contract Immutable {
 
 ---
 
-### functions
+### solidity functions
 
 <br>
 
@@ -866,9 +875,7 @@ contract FunctionSelector {
 
 <br>
 
----
-
-### constructors
+#### constructors
 
 * a constructor is an optional function that only run when the contract is created (it cannot be called afterwards).
 * a global variable can be the assigned to the contractor creator by attributing `msg.sender` to it.
@@ -931,528 +938,6 @@ contract E is X, Y {
 
 <br>
 
------
-
-### sending and receiving ether
-
-<br>
-
-* you can send ether to other contracts by:
-	* `transfer` (2300 gas, throws error)
- 	* `send` (2300 gas, returns bool)
-  	* `call` (forwards all gas or ser gas, returns bool), should be used with re-entrancy guard (i.e., by making all state changes before calling other contracts, and by using re-entrancy guard modifier)
- 
-* a contract receiving ether must have at least of the functions below:
-	* `receive() external payable`, called if `msg.data` is empty, otherwise `fallback()` is called
- 	* `fallback() external payable`
-<br>
-
-```
-contract ReceiveEther {
-    /*
-    Which function is called, fallback() or receive()?
-
-           send Ether
-               |
-         msg.data is empty?
-              / \
-            yes  no
-            /     \
-receive() exists?  fallback()
-         /   \
-        yes   no
-        /      \
-    receive()   fallback()
-    */
-
-    // Function to receive Ether. msg.data must be empty
-    receive() external payable {}
-
-    // Fallback function is called when msg.data is not empty
-    fallback() external payable {}
-
-    function getBalance() public view returns (uint) {
-        return address(this).balance;
-    }
-}
-
-contract SendEther {
-    function sendViaTransfer(address payable _to) public payable {
-        // This function is no longer recommended for sending Ether.
-        _to.transfer(msg.value);
-    }
-
-    function sendViaSend(address payable _to) public payable {
-        // Send returns a boolean value indicating success or failure.
-        // This function is not recommended for sending Ether.
-        bool sent = _to.send(msg.value);
-        require(sent, "Failed to send Ether");
-    }
-
-    function sendViaCall(address payable _to) public payable {
-        // Call returns a boolean value indicating success or failure.
-        // This is the current recommended method to use.
-        (bool sent, bytes memory data) = _to.call{value: msg.value}("");
-        require(sent, "Failed to send Ether");
-    }
-}
-```
-
-<br>
-
-#### receive function
-
-* a contract can have ONE **receive** function (`receive() external payable {...}`, without the function keyword, and no arguments and no return).
-* the `external` and `payable` are the function on where ether is transfered via `send()` or `transfer()`.
-* receive is executed on a call to the contract with empty calldata.
-* receive might only rely on 2300 gas being available.
-* a contract without receive can still receive ether as a recipient of a coinbase transaction (miner block reward) or as a destination of `selfdestruct` (a contract cannot react to this ether transfer).
-
-<br>
-
-#### falback function
-
-* `fallback` is a special function that is executed on a call to the contract when:
-	* a function that does not exist is called (no function match the function signature).
- 	* ether is sent directly to a contract but `receive()` does not exist or `msg.data` is not empty.
-* a contract can have only one `fallback` function, which must have `external` visibility.
-* `fallback` has 2300 gas limit when called by `transfer` or `send`.
-* `fallback` can take `bytes` for input or output.
-
-
-<br>
-
-```
-// TestFallbackInputOutput -> FallbackInputOutput -> Counter
-contract FallbackInputOutput {
-    address immutable target;
-
-    constructor(address _target) {
-        target = _target;
-    }
-
-    fallback(bytes calldata data) external payable returns (bytes memory) {
-        (bool ok, bytes memory res) = target.call{value: msg.value}(data);
-        require(ok, "call failed");
-        return res;
-    }
-}
-
-contract Counter {
-    uint public count;
-
-    function get() external view returns (uint) {
-        return count;
-    }
-
-    function inc() external returns (uint) {
-        count += 1;
-        return count;
-    }
-}
-
-contract TestFallbackInputOutput {
-    event Log(bytes res);
-
-    function test(address _fallback, bytes calldata data) external {
-        (bool ok, bytes memory res) = _fallback.call(data);
-        require(ok, "call failed");
-        emit Log(res);
-    }
-
-    function getTestData() external pure returns (bytes memory, bytes memory) {
-        return (abi.encodeCall(Counter.get, ()), abi.encodeCall(Counter.inc, ()));
-    }
-}
-```
-
-
-<br>
-
-#### transfer function
-
-* the transfer function fails if the balance of the contract is not enough or if the transfer is rejected by the receiving account.
-
-<br>
-
-#### send function
-
-* low-level counterpart of transfer. if the execution fails, then send returns false.
-* the return value must be checked by the caller.
-
-<br>
-
-----
-
-### data management
-
-<br>
-
-* the evm manages different kinds of data depending on their context.
-
-<br>
-
-#### stack
-
-* the evm operates on a virtual stack, which has a maximum size of `1024`.
-* stack items have a size of `256 bits` (the evm is a `256-bit` word machine, which facilitates keccak256 hash scheme and elliptic-curve).
-* the opcodes to modify the stack are:
-	* `POP` (remove from stack),
-	* `PUSH n` (places the `n` bytes item into the stack),
- 	* `DUP n` (duplicates the `n`th stack item),
-  	* `SWAP n` (exchanges the first and the `n`th stack item).
-
-
-<br>
-
-#### calldata
-
-* a called contract receive a freshly cleared instance of memory and has access to the call payload, provided in a separate area called the **calldata**.
-* after it finishes execution, it can return data which will be stored at a location in the caller's memory preallocated by the caller.
-* opcodes include: `CALLDATASIZE` (get size of tx data), `CALLDATALOAD` (loads 32 byte of tx data onto the stack), `CALLDATACOPY` (copies the number of bytes of the tx data to memory).
-* there are also the inline assembly versions: `calldatasize`, `calldataload`, calldatacopy`.
-* they can be called through:
-
-```
-assembly {
-(...)
-}
-```
-
-<br>
-
-#### storage
-
-* persistent read-write word-addressable space for contracts, addressed by words.
-* storage a key-value mapping of `2**256 `slots of 32 bytes each.
-* gas to save data into storage is one of the highest operations.
-* the evm opcodes are: `SLOAD` (loads a word from storage to stack), `SSTORE` (saves a word to storage).
-* it's costly to read, initialise, and modify storage.
-* a contract cannot read or write to any storage apart from its own.
-
-<br>
-
-#### type of storages
-
-* bitpack loading: storing multiple variables in a single `32-bytes` slot by ordering the byte size.
-* fixed-length arrays: takes a predetermined amount of slots.
-* dynamic-length arrays: new elements assign slots after deployment (handled by the evm with keccak256 hashing).
-* mappings: dynamic type with key hashes.
-	* for example, `mapping(address => int)` maps unsigned integers.
- 	* can only be defined in storage (*i.e.,* state variables). memory does not allow mappings even if they are inside a `struct`. 
- 	* the key type can be any built-in value type, bytes, string, or any contract.
-  	* value type can be any type including another mapping or an array.
-  	* mapping are not iterable: it's not possible to obtain a list of all keys of a mapping, nor a list of all values.
-  	* maps cannot be used for functions input or output.
-
-
-<br>
-
-```
-contract Mapping {
-    // Mapping from address to uint
-    mapping(address => uint) public myMap;
-
-    function get(address _addr) public view returns (uint) {
-        // Mapping always returns a value.
-        // If the value was never set, it will return the default value.
-        return myMap[_addr];
-    }
-
-    function set(address _addr, uint _i) public {
-        // Update the value at this address
-        myMap[_addr] = _i;
-    }
-
-    function remove(address _addr) public {
-        // Reset the value to the default value.
-        delete myMap[_addr];
-    }
-}
-```
-
-<br>
-
-
-#### memory
-
-* the second data area of which a contract obtains a cleared instance for each message call.
-* memory is linear and can be addressed at the byte level.
-* reads are limited to a width of `256 bit`s, while writes can be either `8 bits` or `256 bits` wide.
-* memory is expanded by a word (`256-bit`), when accessing (either reading or writing) a previously untouched memory.
-* at the time of expansion, the cost in gas must be paid - memory is more costly the large it grows, scaling quadratically.
-* volatile read-write byte-addressable space (store data during execution) initialized as zero.
-* the evm opcodes are `MLOAD` (loads a word into the stack), `MSTORE` (saves a word to memory), `MSTORE8` (saves a byte to memory).
-* gas costs for memory loads (`MLOADs`) are significantly cheaper in gas than `SLOADs`.
-
-<br>
-
-
-
-
-----
-
-### contract creation (`CREATE2`)
-
-<br>
-
-* the **creation of a contract** is a transaction where the **receiver address is empty** and its **data field contains compiled bytecode** or calling `CREATE2` opcode.
-* the `new` keyword supports `CREATE2` feature by specifying `salt` options.
-* the data sent is executed as bytecode, initializing the state variables in storage and determining the body of the contract being created.
-* **contract memory** is a byte array, where data can be stored in `32 bytes (256 bit)` or `1 byte (8 bit)` chunks, reading in `32 bytes` chunks (through `MSTORE`, `MLOAD`, `MSTORE8`).
-
-<br>
-
-----
-
-### message calls (`CALL`)
-
-<br>
-
-* `call` is a low-level function to **interact with other contracts**.
-* contracts can call other contracts or send ether to non-contract accounts by through **message calls** (`CALL` opcode).
-* every call has a **sender**, a **recipient**, a **payload** (data), a **value** (in wei), and some **gas**.
-* it's the **recommended method** to use when **just sending ether via calling the `fallback` function**.
-* but it's **not the recommended way** to call **existing functions**:
-	* reverts are not bubbled up.
- 	* type checks are bypassed.
-  	* function existence checks are omitted.  
-* a contract can decide how much of its remaining gas should be sent with the inner message call and how much it wants to retain.
-* message calls are limited to a depth of `1024`, which means that for more complex operations, loops should be preferred over recursive calls.
-* this is the recommended way of calling a contract:
-
-```
-contract Callee {
-    uint public x;
-    uint public value;
-
-    function setX(uint _x) public returns (uint) {
-        x = _x;
-        return x;
-    }
-
-    function setXandSendEther(uint _x) public payable returns (uint, uint) {
-        x = _x;
-        value = msg.value;
-
-        return (x, value);
-    }
-}
-
-contract Caller {
-    function setX(Callee _callee, uint _x) public {
-        uint x = _callee.setX(_x);
-    }
-
-    function setXFromAddress(address _addr, uint _x) public {
-        Callee callee = Callee(_addr);
-        callee.setX(_x);
-    }
-
-    function setXandSendEther(Callee _callee, uint _x) public payable {
-        (uint x, uint value) = _callee.setXandSendEther{value: msg.value}(_x);
-    }
-}
-```
-
-<br>
-
-----
-
-### delegate call (`DELEGATECALL`)
-
-<br>
-
-* `DELEGATECALL` preserves context (storage, caller, etc...) of the origing contract, where target code is executed within this context (`address`). therefore, `msg.sender` and `msg.value` do not change.
-
-```
-when contract A executes delegatecall to contract B:
-B's code is executed with contract A's storage, msg.sender and msg.value
-```
-
-* **storage layout must be the same** for the contract calling delegatecall and the contract getting called.
-
-* the contract can **dynamically load code (storage) from a different address at runtime**, while the **current address and balance still refer to the calling contract**.
-
-* when a contract is being created, the code is still empty. the contract is under construction until the constuctor has finished executing.
-
-<br>
-
-```
-// 1. Deploy this contract first
-contract B {
-    // NOTE: storage layout must be the same as contract A
-    uint public num;
-    address public sender;
-    uint public value;
-
-    function setVars(uint _num) public payable {
-        num = _num;
-        sender = msg.sender;
-        value = msg.value;
-    }
-}
-
-contract A {
-    uint public num;
-    address public sender;
-    uint public value;
-
-    function setVars(address _contract, uint _num) public payable {
-        // A's storage is set, B is not modified.
-        (bool success, bytes memory data) = _contract.delegatecall(
-            abi.encodeWithSignature("setVars(uint256)", _num)
-        );
-    }
-}
-```
-
-
-<br>
-
-
-
------
-
-
-### calling another contract
-
-<br>
-
-#### call / delegatecall/ staticall
-
-* used to interface with contracts that do not adhere to ABI, or to give more direct control over encoding.
-* they all take a single bytes memory parameter and return the success condition (as a bool) and the return data (byte memory).
-* with `DELEGATECALL`, only the code of the given address is used but all other aspects are taken from the current contract. the purpose is to use logic code that is stored in the callee contract but operates on the state of the caller contract.
-* with `STATCALL`, the execution will revert if the called function modifies the state in any way.
-
-<br>
-
-
-#### creating a new instance
-
-* the safest way to call another contract is if you create that other contract yourself. 
-* to do this, you can simply instantiate it, using the keyword `new`, as in other object-oriented languages.
-* this keyword will create the contract on the blockchain and return an object that you can use to reference it. 
-
-```
-contract Token is Mortal {
-	Faucet _faucet;
-
-    constructor() {
-        _faucet = new Faucet();
-    }
-}
-```
-
-<br>
-
-#### addressing an existing instance
-
-* another way you can call a contract is by casting the address of an existing instance of the contract. 
-* with this method, you apply a known interface to an existing instance.
-* this is much riskier than the previous mechanism, because we don’t know for sure whether that address actually is a faucet object.
-
-```
-import "Faucet.sol";
-
-contract Token is Mortal {
-
-    Faucet _faucet;
-
-    constructor(address _f) {
-        _faucet = Faucet(_f);
-        _faucet.withdraw(0.1 ether);
-    }
-}
-
-```
-
-
-<br>
-
-----
-
-### randomness
-
-<br>
-
-* you cannot rely on `block.timestamp` or `blockhash` as a source of randomness.
-* here is a snippet of an attack:
-
-```/*
-GuessTheRandomNumber is a game where you win 1 Ether if you can guess the
-pseudo random number generated from block hash and timestamp.
-
-At first glance, it seems impossible to guess the correct number.
-But let's see how easy it is win.
-
-1. Alice deploys GuessTheRandomNumber with 1 Ether
-2. Eve deploys Attack
-3. Eve calls Attack.attack() and wins 1 Ether
-
-What happened?
-Attack computed the correct answer by simply copying the code that computes the random number.
-*/
-
-contract GuessTheRandomNumber {
-    constructor() payable {}
-
-    function guess(uint _guess) public {
-        uint answer = uint(
-            keccak256(abi.encodePacked(blockhash(block.number - 1), block.timestamp))
-        );
-
-        if (_guess == answer) {
-            (bool sent, ) = msg.sender.call{value: 1 ether}("");
-            require(sent, "Failed to send Ether");
-        }
-    }
-}
-
-contract Attack {
-    receive() external payable {}
-
-    function attack(GuessTheRandomNumber guessTheRandomNumber) public {
-        uint answer = uint(
-            keccak256(abi.encodePacked(blockhash(block.number - 1), block.timestamp))
-        );
-
-        guessTheRandomNumber.guess(answer);
-    }
-
-    // Helper function to check balance
-    function getBalance() public view returns (uint) {
-        return address(this).balance;
-    }
-}
-```
-
-<br>
-
----
-
-### ABI encoding and decoding functions
-
-<br>
-
-- `abi.decode`:
-	- `(uint a, uint[2] memory b, bytes memory c) = abi.decode(data, (uint, uint[2], bytes))` decodes the abi encoded data. 
-- `abi.encode`:
-	- `abi.encode(...)` returns `(bytes memory)` encodes stuff using padding and hence no collisions when dynamic data is involved.
-- `abi.encodePacked`:
-	- `abi.encodePacked(...)` returns `(bytes memory) does packed encoding.
- 	- NOT be used when >2 dynamic arguments are involved due to hash collision. for instance, A, AB and AA, B give the same encoding due to no padding.
-- `abi.encodeWithSelector`:
-	- `abi.encodeWithSelector(bytes4 selector, ...)` returns `(bytes memory)` same as `abi.encode` but prepends the selector.
- 	- this is useful when doing raw txns, selector is used to specify function signature. 
-- `abi.encodeCall`:
-	- `abi.encodeCall(functionPointer, ...)` returns `(byte memory)`, the same as above but a function pointer is passed.
-- `abi.encodeWithSignature`
-
-<br>
-
-----
 
 ### error handling
 
@@ -1815,14 +1300,14 @@ contract C is A {
 
 #### calling parent contracts
 
+<br>
+
 * parent contracts can be called directly, or by using the word `super`.
 * if using the keyword `super`, all of the intermediate parent contracts are called.
 
 <br>
 
-----
-
-### interfaces
+#### interfaces
 
 <br>
 
@@ -1886,9 +1371,9 @@ contract UniswapExample {
 
 <br>
 
-----
 
-### libraries
+
+#### libraries
 
 <br>
 
@@ -1897,9 +1382,9 @@ contract UniswapExample {
 
 <br>
 
-----
 
-### ABI encode and decode
+
+#### ABI encode and decode
 
 * `abi.encode` encodes data into bytes.
 
@@ -1978,7 +1463,539 @@ contract AbiDecode {
 }
 ```
 
+
 <br>
+
+-----
+
+### solidity: sending and receiving ether
+
+<br>
+
+* you can send ether to other contracts by:
+	* `transfer` (2300 gas, throws error)
+ 	* `send` (2300 gas, returns bool)
+  	* `call` (forwards all gas or ser gas, returns bool), should be used with re-entrancy guard (i.e., by making all state changes before calling other contracts, and by using re-entrancy guard modifier)
+ 
+* a contract receiving ether must have at least of the functions below:
+	* `receive() external payable`, called if `msg.data` is empty, otherwise `fallback()` is called
+ 	* `fallback() external payable`
+<br>
+
+```
+contract ReceiveEther {
+    /*
+    Which function is called, fallback() or receive()?
+
+           send Ether
+               |
+         msg.data is empty?
+              / \
+            yes  no
+            /     \
+receive() exists?  fallback()
+         /   \
+        yes   no
+        /      \
+    receive()   fallback()
+    */
+
+    // Function to receive Ether. msg.data must be empty
+    receive() external payable {}
+
+    // Fallback function is called when msg.data is not empty
+    fallback() external payable {}
+
+    function getBalance() public view returns (uint) {
+        return address(this).balance;
+    }
+}
+
+contract SendEther {
+    function sendViaTransfer(address payable _to) public payable {
+        // This function is no longer recommended for sending Ether.
+        _to.transfer(msg.value);
+    }
+
+    function sendViaSend(address payable _to) public payable {
+        // Send returns a boolean value indicating success or failure.
+        // This function is not recommended for sending Ether.
+        bool sent = _to.send(msg.value);
+        require(sent, "Failed to send Ether");
+    }
+
+    function sendViaCall(address payable _to) public payable {
+        // Call returns a boolean value indicating success or failure.
+        // This is the current recommended method to use.
+        (bool sent, bytes memory data) = _to.call{value: msg.value}("");
+        require(sent, "Failed to send Ether");
+    }
+}
+```
+
+<br>
+
+#### receive function
+
+* a contract can have ONE **receive** function (`receive() external payable {...}`, without the function keyword, and no arguments and no return).
+* the `external` and `payable` are the function on where ether is transfered via `send()` or `transfer()`.
+* receive is executed on a call to the contract with empty calldata.
+* receive might only rely on 2300 gas being available.
+* a contract without receive can still receive ether as a recipient of a coinbase transaction (miner block reward) or as a destination of `selfdestruct` (a contract cannot react to this ether transfer).
+
+<br>
+
+#### falback function
+
+* `fallback` is a special function that is executed on a call to the contract when:
+	* a function that does not exist is called (no function match the function signature).
+ 	* ether is sent directly to a contract but `receive()` does not exist or `msg.data` is not empty.
+* a contract can have only one `fallback` function, which must have `external` visibility.
+* `fallback` has 2300 gas limit when called by `transfer` or `send`.
+* `fallback` can take `bytes` for input or output.
+
+
+<br>
+
+```
+// TestFallbackInputOutput -> FallbackInputOutput -> Counter
+contract FallbackInputOutput {
+    address immutable target;
+
+    constructor(address _target) {
+        target = _target;
+    }
+
+    fallback(bytes calldata data) external payable returns (bytes memory) {
+        (bool ok, bytes memory res) = target.call{value: msg.value}(data);
+        require(ok, "call failed");
+        return res;
+    }
+}
+
+contract Counter {
+    uint public count;
+
+    function get() external view returns (uint) {
+        return count;
+    }
+
+    function inc() external returns (uint) {
+        count += 1;
+        return count;
+    }
+}
+
+contract TestFallbackInputOutput {
+    event Log(bytes res);
+
+    function test(address _fallback, bytes calldata data) external {
+        (bool ok, bytes memory res) = _fallback.call(data);
+        require(ok, "call failed");
+        emit Log(res);
+    }
+
+    function getTestData() external pure returns (bytes memory, bytes memory) {
+        return (abi.encodeCall(Counter.get, ()), abi.encodeCall(Counter.inc, ()));
+    }
+}
+```
+
+
+<br>
+
+#### transfer function
+
+* the transfer function fails if the balance of the contract is not enough or if the transfer is rejected by the receiving account.
+
+<br>
+
+#### send function
+
+* low-level counterpart of transfer. if the execution fails, then send returns false.
+* the return value must be checked by the caller.
+
+<br>
+
+----
+
+### data management
+
+<br>
+
+* the evm manages different kinds of data depending on their context.
+
+<br>
+
+#### stack
+
+* the evm operates on a virtual stack, which has a maximum size of `1024`.
+* stack items have a size of `256 bits` (the evm is a `256-bit` word machine, which facilitates keccak256 hash scheme and elliptic-curve).
+* the opcodes to modify the stack are:
+	* `POP` (remove from stack),
+	* `PUSH n` (places the `n` bytes item into the stack),
+ 	* `DUP n` (duplicates the `n`th stack item),
+  	* `SWAP n` (exchanges the first and the `n`th stack item).
+
+
+<br>
+
+#### calldata
+
+* a called contract receive a freshly cleared instance of memory and has access to the call payload, provided in a separate area called the **calldata**.
+* after it finishes execution, it can return data which will be stored at a location in the caller's memory preallocated by the caller.
+* opcodes include: `CALLDATASIZE` (get size of tx data), `CALLDATALOAD` (loads 32 byte of tx data onto the stack), `CALLDATACOPY` (copies the number of bytes of the tx data to memory).
+* there are also the inline assembly versions: `calldatasize`, `calldataload`, calldatacopy`.
+* they can be called through:
+
+```
+assembly {
+(...)
+}
+```
+
+<br>
+
+#### storage
+
+* persistent read-write word-addressable space for contracts, addressed by words.
+* storage a key-value mapping of `2**256 `slots of 32 bytes each.
+* gas to save data into storage is one of the highest operations.
+* the evm opcodes are: `SLOAD` (loads a word from storage to stack), `SSTORE` (saves a word to storage).
+* it's costly to read, initialise, and modify storage.
+* a contract cannot read or write to any storage apart from its own.
+
+<br>
+
+#### type of storages
+
+* bitpack loading: storing multiple variables in a single `32-bytes` slot by ordering the byte size.
+* fixed-length arrays: takes a predetermined amount of slots.
+* dynamic-length arrays: new elements assign slots after deployment (handled by the evm with keccak256 hashing).
+* mappings: dynamic type with key hashes.
+	* for example, `mapping(address => int)` maps unsigned integers.
+ 	* can only be defined in storage (*i.e.,* state variables). memory does not allow mappings even if they are inside a `struct`. 
+ 	* the key type can be any built-in value type, bytes, string, or any contract.
+  	* value type can be any type including another mapping or an array.
+  	* mapping are not iterable: it's not possible to obtain a list of all keys of a mapping, nor a list of all values.
+  	* maps cannot be used for functions input or output.
+
+
+<br>
+
+```
+contract Mapping {
+    // Mapping from address to uint
+    mapping(address => uint) public myMap;
+
+    function get(address _addr) public view returns (uint) {
+        // Mapping always returns a value.
+        // If the value was never set, it will return the default value.
+        return myMap[_addr];
+    }
+
+    function set(address _addr, uint _i) public {
+        // Update the value at this address
+        myMap[_addr] = _i;
+    }
+
+    function remove(address _addr) public {
+        // Reset the value to the default value.
+        delete myMap[_addr];
+    }
+}
+```
+
+<br>
+
+
+#### memory
+
+* the second data area of which a contract obtains a cleared instance for each message call.
+* memory is linear and can be addressed at the byte level.
+* reads are limited to a width of `256 bit`s, while writes can be either `8 bits` or `256 bits` wide.
+* memory is expanded by a word (`256-bit`), when accessing (either reading or writing) a previously untouched memory.
+* at the time of expansion, the cost in gas must be paid - memory is more costly the large it grows, scaling quadratically.
+* volatile read-write byte-addressable space (store data during execution) initialized as zero.
+* the evm opcodes are `MLOAD` (loads a word into the stack), `MSTORE` (saves a word to memory), `MSTORE8` (saves a byte to memory).
+* gas costs for memory loads (`MLOADs`) are significantly cheaper in gas than `SLOADs`.
+
+<br>
+
+
+
+
+----
+
+### solidity: speocal opcodes
+
+<br>
+
+
+### contract creation (`CREATE2`)
+
+<br>
+
+* the **creation of a contract** is a transaction where the **receiver address is empty** and its **data field contains compiled bytecode** or calling `CREATE2` opcode.
+* the `new` keyword supports `CREATE2` feature by specifying `salt` options.
+* the data sent is executed as bytecode, initializing the state variables in storage and determining the body of the contract being created.
+* **contract memory** is a byte array, where data can be stored in `32 bytes (256 bit)` or `1 byte (8 bit)` chunks, reading in `32 bytes` chunks (through `MSTORE`, `MLOAD`, `MSTORE8`).
+
+<br>
+
+
+
+#### message calls (`CALL`)
+
+<br>
+
+* `call` is a low-level function to **interact with other contracts**.
+* contracts can call other contracts or send ether to non-contract accounts by through **message calls** (`CALL` opcode).
+* every call has a **sender**, a **recipient**, a **payload** (data), a **value** (in wei), and some **gas**.
+* it's the **recommended method** to use when **just sending ether via calling the `fallback` function**.
+* but it's **not the recommended way** to call **existing functions**:
+	* reverts are not bubbled up.
+ 	* type checks are bypassed.
+  	* function existence checks are omitted.  
+* a contract can decide how much of its remaining gas should be sent with the inner message call and how much it wants to retain.
+* message calls are limited to a depth of `1024`, which means that for more complex operations, loops should be preferred over recursive calls.
+* this is the recommended way of calling a contract:
+
+```
+contract Callee {
+    uint public x;
+    uint public value;
+
+    function setX(uint _x) public returns (uint) {
+        x = _x;
+        return x;
+    }
+
+    function setXandSendEther(uint _x) public payable returns (uint, uint) {
+        x = _x;
+        value = msg.value;
+
+        return (x, value);
+    }
+}
+
+contract Caller {
+    function setX(Callee _callee, uint _x) public {
+        uint x = _callee.setX(_x);
+    }
+
+    function setXFromAddress(address _addr, uint _x) public {
+        Callee callee = Callee(_addr);
+        callee.setX(_x);
+    }
+
+    function setXandSendEther(Callee _callee, uint _x) public payable {
+        (uint x, uint value) = _callee.setXandSendEther{value: msg.value}(_x);
+    }
+}
+```
+
+<br>
+
+
+#### delegate call (`DELEGATECALL`)
+
+<br>
+
+* `DELEGATECALL` preserves context (storage, caller, etc...) of the origing contract, where target code is executed within this context (`address`). therefore, `msg.sender` and `msg.value` do not change.
+
+```
+when contract A executes delegatecall to contract B:
+B's code is executed with contract A's storage, msg.sender and msg.value
+```
+
+* **storage layout must be the same** for the contract calling delegatecall and the contract getting called.
+
+* the contract can **dynamically load code (storage) from a different address at runtime**, while the **current address and balance still refer to the calling contract**.
+
+* when a contract is being created, the code is still empty. the contract is under construction until the constuctor has finished executing.
+
+<br>
+
+```
+// 1. Deploy this contract first
+contract B {
+    // NOTE: storage layout must be the same as contract A
+    uint public num;
+    address public sender;
+    uint public value;
+
+    function setVars(uint _num) public payable {
+        num = _num;
+        sender = msg.sender;
+        value = msg.value;
+    }
+}
+
+contract A {
+    uint public num;
+    address public sender;
+    uint public value;
+
+    function setVars(address _contract, uint _num) public payable {
+        // A's storage is set, B is not modified.
+        (bool success, bytes memory data) = _contract.delegatecall(
+            abi.encodeWithSignature("setVars(uint256)", _num)
+        );
+    }
+}
+```
+
+
+<br>
+
+---
+
+### solidity: calling another contract
+
+<br>
+
+#### call / delegatecall/ staticall
+
+* used to interface with contracts that do not adhere to ABI, or to give more direct control over encoding.
+* they all take a single bytes memory parameter and return the success condition (as a bool) and the return data (byte memory).
+* with `DELEGATECALL`, only the code of the given address is used but all other aspects are taken from the current contract. the purpose is to use logic code that is stored in the callee contract but operates on the state of the caller contract.
+* with `STATCALL`, the execution will revert if the called function modifies the state in any way.
+
+<br>
+
+
+#### creating a new instance
+
+<br>
+
+* the safest way to call another contract is if you create that other contract yourself. 
+* to do this, you can simply instantiate it, using the keyword `new`, as in other object-oriented languages.
+* this keyword will create the contract on the blockchain and return an object that you can use to reference it. 
+
+```
+contract Token is Mortal {
+	Faucet _faucet;
+
+    constructor() {
+        _faucet = new Faucet();
+    }
+}
+```
+
+<br>
+
+#### addressing an existing instance
+
+<br>
+
+* another way you can call a contract is by casting the address of an existing instance of the contract. 
+* with this method, you apply a known interface to an existing instance.
+* this is much riskier than the previous mechanism, because we don’t know for sure whether that address actually is a faucet object.
+
+```
+import "Faucet.sol";
+
+contract Token is Mortal {
+
+    Faucet _faucet;
+
+    constructor(address _f) {
+        _faucet = Faucet(_f);
+        _faucet.withdraw(0.1 ether);
+    }
+}
+
+```
+
+
+<br>
+
+----
+
+### solidity: advanced topics 
+
+<br>
+
+#### randomness
+
+<br>
+
+* you cannot rely on `block.timestamp` or `blockhash` as a source of randomness.
+* here is a snippet of an attack:
+
+```/*
+GuessTheRandomNumber is a game where you win 1 Ether if you can guess the
+pseudo random number generated from block hash and timestamp.
+
+At first glance, it seems impossible to guess the correct number.
+But let's see how easy it is win.
+
+1. Alice deploys GuessTheRandomNumber with 1 Ether
+2. Eve deploys Attack
+3. Eve calls Attack.attack() and wins 1 Ether
+
+What happened?
+Attack computed the correct answer by simply copying the code that computes the random number.
+*/
+
+contract GuessTheRandomNumber {
+    constructor() payable {}
+
+    function guess(uint _guess) public {
+        uint answer = uint(
+            keccak256(abi.encodePacked(blockhash(block.number - 1), block.timestamp))
+        );
+
+        if (_guess == answer) {
+            (bool sent, ) = msg.sender.call{value: 1 ether}("");
+            require(sent, "Failed to send Ether");
+        }
+    }
+}
+
+contract Attack {
+    receive() external payable {}
+
+    function attack(GuessTheRandomNumber guessTheRandomNumber) public {
+        uint answer = uint(
+            keccak256(abi.encodePacked(blockhash(block.number - 1), block.timestamp))
+        );
+
+        guessTheRandomNumber.guess(answer);
+    }
+
+    // Helper function to check balance
+    function getBalance() public view returns (uint) {
+        return address(this).balance;
+    }
+}
+```
+
+<br>
+
+
+
+#### ABI encoding and decoding functions
+
+<br>
+
+- `abi.decode`:
+	- `(uint a, uint[2] memory b, bytes memory c) = abi.decode(data, (uint, uint[2], bytes))` decodes the abi encoded data. 
+- `abi.encode`:
+	- `abi.encode(...)` returns `(bytes memory)` encodes stuff using padding and hence no collisions when dynamic data is involved.
+- `abi.encodePacked`:
+	- `abi.encodePacked(...)` returns `(bytes memory) does packed encoding.
+ 	- NOT be used when >2 dynamic arguments are involved due to hash collision. for instance, A, AB and AA, B give the same encoding due to no padding.
+- `abi.encodeWithSelector`:
+	- `abi.encodeWithSelector(bytes4 selector, ...)` returns `(bytes memory)` same as `abi.encode` but prepends the selector.
+ 	- this is useful when doing raw txns, selector is used to specify function signature. 
+- `abi.encodeCall`:
+	- `abi.encodeCall(functionPointer, ...)` returns `(byte memory)`, the same as above but a function pointer is passed.
+- `abi.encodeWithSignature`
+
+<br>
+
 
 ----
 
