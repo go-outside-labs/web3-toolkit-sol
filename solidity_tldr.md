@@ -1466,6 +1466,7 @@ contract Attack {
 
 <br>
 
+* here are two kinds of errors that EVM can throw. `Error` and `Panic`.
 * an error will undo all changes made to the state during a transaction and they are returned to the caller of the function, example:
 
 ```
