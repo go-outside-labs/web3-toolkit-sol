@@ -27,12 +27,16 @@
 <br>
 
 * gas is a **unit of computation**: each transaction is charged with some gas that has to be paid for by the originator (`tx.origin`).
-* **gas spent** is the total amount of gas used in a transaction. if the gas is used up at any point, an out-of-gas exception is triggered, ending execution and reverting all modifications made to the state in the current call frame.
-* since each block has a maximum amount of gas, it also limits the amount of work needed to validate a block.
-* gas price is how much ether you are willing to pay for gas. it's set by the originator of the transaction, who has to pay `gas_price * gas` upfront to the EVM executor. any gas left is refunded to the transaction originator. exceptions that revert changes do not refund gas.
-* there are two upper bounds for the amount of gas you can spend:
-	- gas limit: max amount of gas you are willing to use for your transaction, set by you.
- 	- block gas limit: max amount of gas allowed in a block, set by the network.   
+* **gas spent** is the total amount of gas used in a transaction.
+	* if the gas is used up at any point, an out-of-gas exception is triggered, ending execution and reverting all modifications made to the state in the current call frame.
+* since **each block has a maximum amount of gas**, it also limits the amount of work needed to validate a block.
+* **gas price** is how much ether you are willing to pay for gas.
+	* it's set by the originator of the transaction, who has to pay `gas_price * gas` upfront to the EVM executor.
+ 	* any gas left is refunded to the transaction originator.
+  	* exceptions that revert changes do not refund gas.
+* there are **two upper bounds** for the amount of gas you can spend:
+	- **gas limit**: max amount of gas you are willing to use for your transaction, set by you.
+ 	- **block gas limit**: max amount of gas allowed in a block, set by the network.   
 
 <br>
 
@@ -43,33 +47,16 @@
 
 <br>
 
-* until [account abstraction](https://github.com/go-outside-labs/mev-toolkit/tree/main/MEV_by_chains/MEV_on_Ethereum/account_abstraction) becomes a thing, there are two types of accounts in ethereum: **external accounts** (controlled by a pub-priv key pair and with empty code and storage) and **contract accounts** (controlled by code stored with the account and containing bytecode).
+* until ([account abstraction](https://github.com/go-outside-labs/mev-toolkit/tree/main/MEV_by_chains/MEV_on_Ethereum/account_abstraction) becomes a thing, there are two types of accounts in ethereum: **external accounts** (controlled by a pub-priv key pair and with empty code and storage) and **contract accounts** (controlled by code stored with the account and containing bytecode).
 * these accounts are identified by:
-	* an address of **160-bit length** (rightmost 20 bytes of the **keccak hash** of the RLP encoding of the structure with the sender and the nonce)
- 	* a **balance**: in wei, where `1 ether` = `10**18 wei`
-  	* a **nonce**: number of transactions made by the account
-  	* a **bytecode**: merkle root hash of the entire state tree
-  	* **stored data**: a key-value mapping 256-bit words to 256-bit words (i.e., keccak hash of the root node of the storage trie)
+	* an address of **160-bit length** (rightmost 20 bytes of the **keccak hash** of the RLP encoding of the structure with the sender and the nonce).
+ 	* a **balance**: in wei, where `1 ether` = `10**18 wei`.
+  	* a **nonce**: number of transactions made by the account.
+  	* a **bytecode**: merkle root hash of the entire state tree.
+  	* **stored data**: a key-value mapping 256-bit words to 256-bit words (i.e., keccak hash of the root node of the storage trie).
 
 <br>
 
-<img width="500" src="https://user-images.githubusercontent.com/1130416/219830838-01ce01c8-e818-403e-8a7a-2dbcff68a7bc.png">
-
-<br>
-
-
-##### what is considered modifying state
-
-- writing to state variables
-- emitting events
-- creating other contracts
-- sending ether via calls
-- using selfdestruct
-- using low-level calls
-- calling any function not marked `view` or `pure`
-- using inline assembly that contains certain opcodes
-
-<br>
 
 ----
 
@@ -731,6 +718,20 @@ contract Child is Base {
     }
 }
 ```
+
+##### what is considered modifying state
+
+- writing to state variables
+- emitting events
+- creating other contracts
+- sending ether via calls
+- using selfdestruct
+- using low-level calls
+- calling any function not marked `view` or `pure`
+- using inline assembly that contains certain opcodes
+
+<br>
+
 
 <br>
 
