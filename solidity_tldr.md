@@ -75,126 +75,6 @@
 
 <br>
 
-----
-
-### contract creation (`CREATE2`)
-
-<br>
-
-* the **creation of a contract** is a transaction where the **receiver address is empty** and its **data field contains compiled bytecode** or calling `CREATE2` opcode.
-* the `new` keyword supports `CREATE2` feature by specifying `salt` options.
-* the data sent is executed as bytecode, initializing the state variables in storage and determining the body of the contract being created.
-* **contract memory** is a byte array, where data can be stored in `32 bytes (256 bit)` or `1 byte (8 bit)` chunks, reading in `32 bytes` chunks (through `MSTORE`, `MLOAD`, `MSTORE8`).
-
-<br>
-
-----
-
-### message calls (`CALL`)
-
-<br>
-
-* `call` is a low-level function to **interact with other contracts**.
-* contracts can call other contracts or send ether to non-contract accounts by through **message calls** (`CALL` opcode).
-* every call has a **sender**, a **recipient**, a **payload** (data), a **value** (in wei), and some **gas**.
-* it's the **recommended method** to use when **just sending ether via calling the `fallback` function**.
-* but it's **not the recommended way** to call **existing functions**:
-	* reverts are not bubbled up.
- 	* type checks are bypassed.
-  	* function existence checks are omitted.  
-* a contract can decide how much of its remaining gas should be sent with the inner message call and how much it wants to retain.
-* message calls are limited to a depth of `1024`, which means that for more complex operations, loops should be preferred over recursive calls.
-* this is the recommended way of calling a contract:
-
-```
-contract Callee {
-    uint public x;
-    uint public value;
-
-    function setX(uint _x) public returns (uint) {
-        x = _x;
-        return x;
-    }
-
-    function setXandSendEther(uint _x) public payable returns (uint, uint) {
-        x = _x;
-        value = msg.value;
-
-        return (x, value);
-    }
-}
-
-contract Caller {
-    function setX(Callee _callee, uint _x) public {
-        uint x = _callee.setX(_x);
-    }
-
-    function setXFromAddress(address _addr, uint _x) public {
-        Callee callee = Callee(_addr);
-        callee.setX(_x);
-    }
-
-    function setXandSendEther(Callee _callee, uint _x) public payable {
-        (uint x, uint value) = _callee.setXandSendEther{value: msg.value}(_x);
-    }
-}
-```
-
-<br>
-
-----
-
-### delegate call (`DELEGATECALL`)
-
-<br>
-
-* `DELEGATECALL` preserves context (storage, caller, etc...) of the origing contract, where target code is executed within this context (`address`). therefore, `msg.sender` and `msg.value` do not change.
-
-```
-when contract A executes delegatecall to contract B:
-B's code is executed with contract A's storage, msg.sender and msg.value
-```
-
-* **storage layout must be the same** for the contract calling delegatecall and the contract getting called.
-
-* the contract can **dynamically load code (storage) from a different address at runtime**, while the **current address and balance still refer to the calling contract**.
-
-* when a contract is being created, the code is still empty. the contract is under construction until the constuctor has finished executing.
-
-<br>
-
-```
-// 1. Deploy this contract first
-contract B {
-    // NOTE: storage layout must be the same as contract A
-    uint public num;
-    address public sender;
-    uint public value;
-
-    function setVars(uint _num) public payable {
-        num = _num;
-        sender = msg.sender;
-        value = msg.value;
-    }
-}
-
-contract A {
-    uint public num;
-    address public sender;
-    uint public value;
-
-    function setVars(address _contract, uint _num) public payable {
-        // A's storage is set, B is not modified.
-        (bool success, bytes memory data) = _contract.delegatecall(
-            abi.encodeWithSignature("setVars(uint256)", _num)
-        );
-    }
-}
-```
-
-
-<br>
-
 ------
 
 ### variable scopes
@@ -1265,7 +1145,133 @@ contract Mapping {
 
 <br>
 
+
+
+
 ----
+
+### contract creation (`CREATE2`)
+
+<br>
+
+* the **creation of a contract** is a transaction where the **receiver address is empty** and its **data field contains compiled bytecode** or calling `CREATE2` opcode.
+* the `new` keyword supports `CREATE2` feature by specifying `salt` options.
+* the data sent is executed as bytecode, initializing the state variables in storage and determining the body of the contract being created.
+* **contract memory** is a byte array, where data can be stored in `32 bytes (256 bit)` or `1 byte (8 bit)` chunks, reading in `32 bytes` chunks (through `MSTORE`, `MLOAD`, `MSTORE8`).
+
+<br>
+
+----
+
+### message calls (`CALL`)
+
+<br>
+
+* `call` is a low-level function to **interact with other contracts**.
+* contracts can call other contracts or send ether to non-contract accounts by through **message calls** (`CALL` opcode).
+* every call has a **sender**, a **recipient**, a **payload** (data), a **value** (in wei), and some **gas**.
+* it's the **recommended method** to use when **just sending ether via calling the `fallback` function**.
+* but it's **not the recommended way** to call **existing functions**:
+	* reverts are not bubbled up.
+ 	* type checks are bypassed.
+  	* function existence checks are omitted.  
+* a contract can decide how much of its remaining gas should be sent with the inner message call and how much it wants to retain.
+* message calls are limited to a depth of `1024`, which means that for more complex operations, loops should be preferred over recursive calls.
+* this is the recommended way of calling a contract:
+
+```
+contract Callee {
+    uint public x;
+    uint public value;
+
+    function setX(uint _x) public returns (uint) {
+        x = _x;
+        return x;
+    }
+
+    function setXandSendEther(uint _x) public payable returns (uint, uint) {
+        x = _x;
+        value = msg.value;
+
+        return (x, value);
+    }
+}
+
+contract Caller {
+    function setX(Callee _callee, uint _x) public {
+        uint x = _callee.setX(_x);
+    }
+
+    function setXFromAddress(address _addr, uint _x) public {
+        Callee callee = Callee(_addr);
+        callee.setX(_x);
+    }
+
+    function setXandSendEther(Callee _callee, uint _x) public payable {
+        (uint x, uint value) = _callee.setXandSendEther{value: msg.value}(_x);
+    }
+}
+```
+
+<br>
+
+----
+
+### delegate call (`DELEGATECALL`)
+
+<br>
+
+* `DELEGATECALL` preserves context (storage, caller, etc...) of the origing contract, where target code is executed within this context (`address`). therefore, `msg.sender` and `msg.value` do not change.
+
+```
+when contract A executes delegatecall to contract B:
+B's code is executed with contract A's storage, msg.sender and msg.value
+```
+
+* **storage layout must be the same** for the contract calling delegatecall and the contract getting called.
+
+* the contract can **dynamically load code (storage) from a different address at runtime**, while the **current address and balance still refer to the calling contract**.
+
+* when a contract is being created, the code is still empty. the contract is under construction until the constuctor has finished executing.
+
+<br>
+
+```
+// 1. Deploy this contract first
+contract B {
+    // NOTE: storage layout must be the same as contract A
+    uint public num;
+    address public sender;
+    uint public value;
+
+    function setVars(uint _num) public payable {
+        num = _num;
+        sender = msg.sender;
+        value = msg.value;
+    }
+}
+
+contract A {
+    uint public num;
+    address public sender;
+    uint public value;
+
+    function setVars(address _contract, uint _num) public payable {
+        // A's storage is set, B is not modified.
+        (bool success, bytes memory data) = _contract.delegatecall(
+            abi.encodeWithSignature("setVars(uint256)", _num)
+        );
+    }
+}
+```
+
+
+<br>
+
+
+
+-----
+
 
 ### calling another contract
 
