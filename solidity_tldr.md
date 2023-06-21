@@ -20,9 +20,8 @@
 
 <br>
 
-----
 
-### gas
+#### gas
 
 <br>
 
@@ -41,9 +40,8 @@
 <br>
 
 
----
 
-### accounts
+#### accounts
 
 <br>
 
@@ -58,9 +56,7 @@
 <br>
 
 
-----
-
-### transactions
+#### transactions
 
 <br>
 
@@ -77,7 +73,51 @@
 
 ------
 
-### variable scopes
+### solidity
+
+<br>
+
+
+#### solidity vs. other languages
+
+<br>
+
+* **from python, we get:** 
+	- modifiers
+	- multiple inheritances
+
+* **from js we get:**
+	- function-level scoping
+	- the `var` keyword
+
+* **from c/c++ we get:**
+	- scoping: variables are visible from the point right after their declaration until the end of the smallest {}-block that contains the declaration.
+	- the good ol' value types (passed by value, so they are always copied to the stack) and reference types (references to the same underlying variable).
+	- however, a variable that is declared will have an initial default value whose byte-representation is all zeros.
+	- int and uint integers, with `uint8` to `uint256` in the step of `8`.
+
+* **from being statically-typed:**
+	- the type of each variable (local and state) needs to be specified at compile-time (as opposed to runtime).
+
+* SPDX stands for software package data exchange. the compiler will include this in the bytecode metadata and make it machine readable.
+
+<br>
+
+#### best practices for layout in a contract
+
+<br>
+
+1. state variables
+2. events
+3. modifiers
+4. constructors
+5. functions
+
+<br>
+
+#### variable scopes
+
+<br>
 
 * `local`, declared and used inside functions and not stored on blockchain.
 * `state`, declared in the contract scope, stored on blockchain.
@@ -85,232 +125,12 @@
 
 <br>
 
-----
 
-### predefined global variables and opcodes
-
-<br>
-
-* when a contract is executed in the EVM, it has access to a small set of global objects: `block`, `msg`, and `tx` objects.
-* in addition, solidity exposes a **[number of EVM opcodes](https://ethereum.org/en/developers/docs/evm/opcodes/) as predefined functions.
-* all instructions operate on the basic data type, `256-bit` words or on slices of memory (and other byte arrays).
-* the usual arithmetic, bit, logical, and comparison operations are present, and conditional and unconditional jumps are possible.
-
+#### variables location
 
 <br>
 
-##### msg
-
-* `msg` is a special global variable that contains properties that allow access to the blockchain:
-	* `msg object`: the transaction that triggered the execution of the contract.
-	* `msg.sender`: sender address of the transaction (i.e., always the address where the current function call come from).
-	* `msg.value`: ether sent with this call (in wei).
-	* `msg.data`: data payload of this call into our contract.
-	* `msg.sig`: first four bytes of the data payload, which is the function selector.
-
-<br>
-
-##### tx
-
-* `tx.gasprice`: gas price in the calling transaction.
-* `tx.origin`: address of the originating EOA for this transaction. WARNING: unsafe!
-
-<br>
-
-##### block
-
-* `block.coinbase`:
-	* address of the recipient of the current block's fees and block reward.
- 	* it's `payable`. 
-* `block.gaslimit`: maximum amount of gas that can be spent across all transactions included in the current block.
-* `block.number`: current block number (blockchain height).
-* `block.timestamp`:
-	* timestamp placed in the current block by the miner (number of seconds since the Unix epoch).
-* `block.chainid`
-
-
-<br>
-
-##### address
-
-* a state variable can be declared as the type `address`, a 160-bit value that does not allow arithmetic operations.
-* here are its attributes:
-	* `address.balance`: balance of the address, in wei. 
-	* `address.transfer(__amount__)`: transfers the amount (in wei) to this address, throwing an exception on any error.
-	* `address.send(__amount__)`: similar to transfer, only instead of throwing an exception, it returns false on error. WARNING: always check the return value of send.
-	* `address.call(__payload__)`: low-level `CALL` function—can construct an arbitrary message call with a data payload. Returns false on error. WARNING: unsafe.
-	* `address.delegatecall(__payload__)`: low-level `DELEGATECALL` function, like `callcode(...)` but with the full msg context seen by the current contract. Returns false on error. WARNING: advanced use only!
-
-
-<br>
-
-##### built-in functions
-
-* `addmod`, `mulmod`: for modulo addition and multiplication. for example, `addmod(x,y,k)` calculates `(x + y) % k`.
-* `keccak256`, `sha256`, `sha3`, `ripemd160`: calculate hashes with various standard hash algorithms.
-	* some keccak256 use cases are: to create a deterministic unique ID from a input, for commit-reveal schemes, for compact cryptographic signature (by signing the hash instead of a larger input)
-
-<br>
-
-```
-contract HashFunction {
-    function hash(
-        string memory _text,
-        uint _num,
-        address _addr
-    ) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_text, _num, _addr));
-    }
-
-    // Example of hash collision
-    // Hash collision can occur when you pass more than one dynamic data type
-    // to abi.encodePacked. In such case, you should use abi.encode instead.
-    function collision(
-        string memory _text,
-        string memory _anotherText
-    ) public pure returns (bytes32) {
-        // encodePacked(AAA, BBB) -> AAABBB
-        // encodePacked(AA, ABBB) -> AAABBB
-        return keccak256(abi.encodePacked(_text, _anotherText));
-    }
-}
-
-contract GuessTheMagicWord {
-    bytes32 public answer =
-        0x60298f78cc0b47170ba79c10aa3851d7648bd96f2f8e46a19dbc777c36fb0c00;
-
-    // Magick word is "Solidity"
-    function guess(string memory _word) public view returns (bool) {
-        return keccak256(abi.encodePacked(_word)) == answer;
-    }
-}
-```
-
-<br>
-
-
-* `ecrecover`: recovers the address used to sign a message from the signature.
-* `selfdestruct(__recipient_address__)`: deletes the current contract, sending any remaining ether in the account to the recipient address (it's the only way to remove code from the blockchain, which can be via delegatecall or callcode). the `SELFDESTRUCT` opcode is going deprecated/under changes.
-* `this`: address of the currently executing contract account.
-* [list of precompiled contracts](https://www.evm.codes/precompiled?fork=arrowGlacier)
-
-
-<br>
-
----
-
-### solidity vs. other languages
-
-<br>
-
-* from python, we get: 
-	- modifiers
-	- multiple inheritances
-
-* from js we get:
-	- function-level scoping
-	- the `var` keyword
-
-* from c/c++ we get:
-	- scoping: variables are visible from the point right after their declaration until the end of the smallest {}-block that contains the declaration.
-	- the good ol' value types (passed by value, so they are always copied to the stack) and reference types (references to the same underlying variable).
-	- however, a variable that is declared will have an initial default value whose byte-representation is all zeros.
-	- int and uint integers, with `uint8` to `uint256` in the step of `8`.
-
-* from being statically-typed:
-	- the type of each variable (local and state) needs to be specified at compile-time (as opposed to runtime).
-
-<br>
-
-* you start files with the `SPDX License Identifier (`// SPDX-License-Identifier: MIT`)`.
-* SPDX stands for software package data exchange.
-* the compiler will include this in the bytecode metadata and make it machine readable.
-
-<br>
-
----
-
-### pragmas
-
-<br>
-
-
-* **pragmas** directives are used to enable certain compiler features and checks. 
-* version Pragma indicates the specific solidity compiler version.
-* it does not change the version of the compiler, though. you will get an error if it does not match the compiler.
-* the best practices for layout in a contract are:
-
-```
-	1. state variables
-	2. events
-	3. modifiers
-	4. constructors
-	5. functions
-```
-
-<br>
-
-----
-
-### natspec comments
-
-<br>
-
-* **natspec comments**, also known as the "ethereum natural language specification format".
-* written as triple slashes (`///`) or double asterisk block.
-`(/**...*/)`, directly above function declarations or statements to generate documentation in `JSON` format for developers and end-users.
-* these are some tags:
-	* `@title`: describe the contract/interface
-	* `@author`
-	* `@notice`: explain to an end user what it does
-	* `@dev`: explain to a dev 
-	* `@param`: document params
-	* `@return`: any returned variable
-	* `@inheritdoc`: copies missing tags from the base function (must be followed by contract name)
-	* `@custom`: anything application-defined
-
-
-
-<br>
-
-----
-
-### events
-
-<br>
-
-* **events** are an abstraction on top of EVM's logging, allowing clients to react to specific contract changes.
-* emitting events cause the arguments to be stored in the transaction's log (which are associated with the address of the contract).
-* contracts cannot access log data after it has been created, but they can be efficiently accessed from outside the blockchain (e.g., through bloom filters).
-* some use cases for events are: listening for events and updating user interface or a cheap form of storage.
-* events are especially useful for light clients and DApp services, which can "watch" for specific events and report them to the user interface, or make a change in the state of the application to reflect an event in an underlying contract.
-* events are created with `event` and emitted with `emit`. for example, an example can be created with:
-
-```
-event Sent(address from, address to, uint amount);
-```
-
-and then, be emitted with:
-
-```
-emit Sent(msg.sender, receiver, amount)
-```
-
-
-<br>
-
----
-
-### type of variables
-
-<br>
-
-* there are 3 types of variables in solidity:
-	* local: declared inside a function and not stored on the blockchain.
- 	* state: declared outside a function and stored on the blockchain (`public`).
-  	* global: provides information about the blockchain (e.g., `block.timestamp` or `msg.sender`). 
-
-* in terms of the location of the data, variables are declared as either:
+* variables are declared as either:
 	* storage: variable is a state variable (stored on the blockchain).
  		* solidity storage is an array of length `2^256`.
      		* each slot in the array can store 32 bytes.
@@ -360,9 +180,215 @@ contract DataLocations {
 
 <br>
 
+
+#### predefined global variables and opcodes
+
+<br>
+
+* when a contract is executed in the EVM, it has access to a small set of global objects: `block`, `msg`, and `tx` objects.
+* in addition, solidity exposes a **[number of EVM opcodes](https://ethereum.org/en/developers/docs/evm/opcodes/)** as predefined functions.
+* all instructions operate on the basic data type, `256-bit` words or on slices of memory (and other byte arrays).
+* the usual arithmetic, bit, logical, and comparison operations are present, and conditional and unconditional jumps are possible.
+* [list of precompiled contracts](https://www.evm.codes/precompiled?fork=arrowGlacier)
+
+
+<br>
+
+#### msg
+
+<br>
+
+* `msg` is a special global variable that contains properties that allow access to the blockchain.
+* `msg object`: the transaction that triggered the execution of the contract.
+* `msg.sender`: sender address of the transaction (*i.e.*, always the address where the current function call come from).
+* `msg.value`: ether sent with this call (in wei).
+* `msg.data`: data payload of this call into our contract.
+* `msg.sig`: first four bytes of the data payload, which is the function selector.
+
+<br>
+
+#### tx
+
+<br>
+
+* `tx.gasprice`: gas price in the calling transaction.
+* `tx.origin`: address of the originating EOA for this transaction. WARNING: unsafe!
+
+<br>
+
+#### block
+
+<br>
+
+* `block.coinbase`:
+	* address of the recipient of the current block's fees and block reward.
+ 	* it's `payable`. 
+* `block.gaslimit`: maximum amount of gas that can be spent across all transactions included in the current block.
+* `block.number`: current block number (blockchain height).
+* `block.timestamp`:
+	* timestamp placed in the current block by the miner (number of seconds since the Unix epoch).
+* `block.chainid`
+
+
+<br>
+
+#### `address`
+
+<br>
+
+* a state variable can be declared as the type `address`, a 160-bit value that does not allow arithmetic operations.
+* `address` holds a `20 byte` value (the size of an ethereum address).
+* `address payable` is an address you can send ether to (while plain address not), and comes with additional members `transfer` and `send`.
+* explicit conversion from address to address payable can be done with `payable()`.
+* explicit conversion from or to address is allowed for `uint160`, integer literals, `byte20`, and contract types.
+* members of address type are: 
+	* `address.balance`: balance of the address, in wei. 
+	* `address.transfer(__amount__)`: transfers the amount (in wei) to this address, throwing an exception on any error.
+	* `address.send(__amount__)`: similar to transfer, only instead of throwing an exception, it returns false on error.
+		* WARNING: always check the return value of send.
+	* `address.call(__payload__)`: low-level `CALL` function—can construct an arbitrary message call with a data payload. Returns false on error.
+		* WARNING: unsafe.
+	* `address.delegatecall(__payload__)`: low-level `DELEGATECALL` function, like `callcode(...)` but with the full msg context seen by the current contract. Returns false on error.
+		* WARNING: advanced use only!
+  	* `address.code`
+  	* `address.codehash`
+  	* `address.staticcall`
+
+<br>
+
+##### built-in functions
+
+* `this`:
+	* address of the currently executing contract account.
+* `addmod`, `mulmod`:
+	* for modulo addition and multiplication. for example, `addmod(x,y,k)` calculates `(x + y) % k`.
+* `keccak256`, `sha256`, `sha3`, `ripemd160`:
+	* calculate hashes with various standard hash algorithms.
+* some `keccak256` use cases are:
+	* to create a deterministic unique ID from a input, for commit-reveal schemes, for compact cryptographic signature (by signing the hash instead of a larger input).
+
+<br>
+
+```
+contract HashFunction {
+    function hash(
+        string memory _text,
+        uint _num,
+        address _addr
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_text, _num, _addr));
+    }
+
+    // Example of hash collision
+    // Hash collision can occur when you pass more than one dynamic data type
+    // to abi.encodePacked. In such case, you should use abi.encode instead.
+    function collision(
+        string memory _text,
+        string memory _anotherText
+    ) public pure returns (bytes32) {
+        // encodePacked(AAA, BBB) -> AAABBB
+        // encodePacked(AA, ABBB) -> AAABBB
+        return keccak256(abi.encodePacked(_text, _anotherText));
+    }
+}
+
+contract GuessTheMagicWord {
+    bytes32 public answer =
+        0x60298f78cc0b47170ba79c10aa3851d7648bd96f2f8e46a19dbc777c36fb0c00;
+
+    // Magick word is "Solidity"
+    function guess(string memory _word) public view returns (bool) {
+        return keccak256(abi.encodePacked(_word)) == answer;
+    }
+}
+```
+
+<br>
+
+
+* `ecrecover`:
+	* recovers the address used to sign a message from the signature:
+	* `erecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s) returns (address)` and can be used to verify a signature:
+		* this will return an `address` of who signed the signature.
+	  	* `r` is the first 32 bytes of signature
+	  	* `s` is the second 32 bytes of the signature
+	  	* `v` is the final ` byte of the signature
+  	* the `hash` is the hash of the message the user has signed, with this format:
+```
+hashToBeSuppliedToEcrecover = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n",len(_message), keccak256(_message)));
+```
+ 
+
+* `selfdestruct(__recipient_address__)`:
+	* deletes the current contract, sending any remaining ether in the account to the recipient address (it's the only way to remove code from the blockchain, which can be via delegatecall or callcode).
+ 	* the `SELFDESTRUCT` opcode is going deprecated/under changes.
+
+
+<br>
+
+
+#### pragmas
+
+<br>
+
+* **pragmas** directives are used to enable certain compiler features and checks. 
+* `version Pragma` indicates the specific solidity compiler version.
+* it does not change the version of the compiler, though. you will get an error if it does not match the compiler.
+
+<br>
+
+
+
+##### natspec comments
+
+<br>
+
+* **natspec comments**, also known as the "ethereum natural language specification format".
+* written as triple slashes (`///`) or double asterisk block.
+`(/**...*/)`, directly above function declarations or statements to generate documentation in `JSON` format for developers and end-users.
+* these are some tags:
+	* `@title`: describe the contract/interface
+	* `@author`
+	* `@notice`: explain to an end user what it does
+	* `@dev`: explain to a dev 
+	* `@param`: document params
+	* `@return`: any returned variable
+	* `@inheritdoc`: copies missing tags from the base function (must be followed by contract name)
+	* `@custom`: anything application-defined
+
+<br>
+
+
+#### events
+
+<br>
+
+* **events** are an abstraction on top of EVM's logging, allowing clients to react to specific contract changes.
+* emitting events cause the arguments to be **stored in the transaction's log** (which are associated with the address of the contract).
+* contracts cannot access log data after it has been created, but they can be efficiently accessed from outside the blockchain (*e.g.*, through bloom filters).
+* some use cases for events are:
+	* listening for events and updating user interface
+ 	* a cheap form of storage.
+* events are especially useful for light clients and DApp services, which can "watch" for specific events and report them to the user interface, or make a change in the state of the application to reflect an event in an underlying contract.
+* events are created with `event` and emitted with `emit`.
+* for example, an example can be created with:
+
+```
+event Sent(address from, address to, uint amount);
+```
+
+and then, be emitted with:
+
+```
+emit Sent(msg.sender, receiver, amount)
+```
+
+
+<br>
+
 ####  uint 
 
-* `uint` stands for unsigned integer, meaning non-negative integers
+* `uint` stands for unsigned integer, meaning non-negative integers.
 * different sizes are available:
 	* `uint8` ranges from `0 to 2 ** 8 - 1`
   	* `uint16` ranges from `0 to 2 ** 16 - 1`
@@ -371,15 +397,6 @@ contract DataLocations {
 
 <br>
 
-#### address types
-
-* `address` holds a `20 byte` value (the size of an ethereum address).
-* `address payable` is an address you can send ether to (while plain address not), and comes with additional members `transfer` and `send`.
-* explicit conversion from address to address payable can be done with `payable()`.
-* explicit conversion from or to address is allowed for `uint160`, integer literals, `byte20`, and contract types.
-* the members of address type are: `.balance`, `.code`, `.codehash`, `.transfer`, `.send`, `.call`, `.delegatecall`, `.staticcall`.
-
-<br>
 
 #### arrays and byte arrays
 
@@ -1954,16 +1971,7 @@ contract AbiDecode {
    	2. recover signed from signature and hash
    	3. compare recovered signed to claimed signer
 
-* `erecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s) returns (address)` and can be used to verify a signature:
-	* this will return an `address` of who signed the signature.
-  	* `r` is the first 32 bytes of signature
-  	* `s` is the second 32 bytes of the signature
-  	* `v` is the final ` byte of the signature
-  	* the `hash` is the hash of the message the user has signed, with this format:
-```
-hashToBeSuppliedToEcrecover = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n",len(_message), keccak256(_message)));
-```
- 
+
 
 <br>
 
