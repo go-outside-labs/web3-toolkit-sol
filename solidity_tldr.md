@@ -77,7 +77,7 @@
 
 ----
 
-### contract creation (`CREATE`, `CREATE2`)
+### contract creation (`CREATE2`)
 
 <br>
 
@@ -94,17 +94,15 @@
 
 <br>
 
-* `call` is a low-level function to interact with other contracts.
-* it's the recommended method to use when just sending ether via callung the `fallback` function.
-* but it's not the recommended way to call existing functions:
-	* reverts are not bubbled up
- 	* type checks are bypassed
-  	* function existence checks are omitted   
+* `call` is a low-level function to **interact with other contracts**.
 * contracts can call other contracts or send ether to non-contract accounts by through **message calls** (`CALL` opcode).
-* they are similar to transactions, having a source, a target, data payload, ether, gas, and return data.
-* every transaction is actually a top-level message call which can create further message calls.
-* a contract can decide how much of its remaining gas should be sent with the inner message call and how much it wants to retain.
 * every call has a **sender**, a **recipient**, a **payload** (data), a **value** (in wei), and some **gas**.
+* it's the **recommended method** to use when **just sending ether via calling the `fallback` function**.
+* but it's **not the recommended way** to call **existing functions**:
+	* reverts are not bubbled up.
+ 	* type checks are bypassed.
+  	* function existence checks are omitted.  
+* a contract can decide how much of its remaining gas should be sent with the inner message call and how much it wants to retain.
 * message calls are limited to a depth of `1024`, which means that for more complex operations, loops should be preferred over recursive calls.
 * this is the recommended way of calling a contract:
 
