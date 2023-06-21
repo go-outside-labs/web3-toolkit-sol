@@ -13,7 +13,7 @@
 
 <br>
 
-* the evm is a stack machine (not a register machine), so that all computations are performed on the stack data area.
+* the evm is a stack machine (not a register machine), so all computations are performed on the stack data area.
 * the stack has a maximum size of `1024` elements and contains words of `256` bits.
 * access to the stack is limited to the top end (topmost 16 elements to the top of the stack)
 
@@ -83,7 +83,7 @@
 * it can include binary data (payload) and ether.
 * if the target account contains code, that code is executed and the payload is provided as input data.
 * if the target account is not set (e.g., the transaction does not have a recipient or the recipient is set to `null`), the transaction creates a new contract.
-* the adddres of a contract is not the zero address, but an address derived from the sender and its nonce.
+* the address of a contract is not the zero address, but an address derived from the sender and its nonce.
 * the output data of this execution is stored as the code contract, i.e., to create a contract, you don't send the actual code of the contract, but instead a code that returns the code when executed.
 
 <br>
@@ -163,15 +163,15 @@ contract CarFactory {
 
 <br>
 
-* `call` is a low level function to interact with other contracts.
+* `call` is a low-level function to interact with other contracts.
 * it's the recommended method to use when just sending ether via callung the `fallback` function.
 * but it's not the recommended way to call existing functions:
 	* reverts are not bubbled up
  	* type checks are bypassed
-  	* function existence checks are ommited   
+  	* function existence checks are omitted   
 * contracts can call other contracts or send ether to non-contract accounts by through **message calls** (`CALL` opcode).
 * they are similar to transactions, having a source, a target, data payload, ether, gas, and return data.
-* every transaction is actually a top-level message call which can create further messages calls.
+* every transaction is actually a top-level message call which can create further message calls.
 * a contract can decide how much of its remaining gas should be sent with the inner message call and how much it wants to retain.
 * every call has a **sender**, a **recipient**, a **payload** (data), a **value** (in wei), and some **gas**.
 * message calls are limited to a depth of `1024`, which means that for more complex operations, loops should be preferred over recursive calls.
@@ -226,7 +226,7 @@ when contract A executes delegatecall to contract B:
 B's code is executed with contract A's storage, msg.sender and msg.value
 ```
 
-* the contract can dynamically load code (storage) from a different address at runtime, while current address and balance still refer to the calling contract.
+* the contract can dynamically load code (storage) from a different address at runtime, while the current address and balance still refer to the calling contract.
 * when a contract is being created, the code is still empty. therefore, you should not call back into the contract under construction until the constuctor has finished executing.
 
 * you must keep two things in mind when using delegatecall:
@@ -322,7 +322,7 @@ contract A {
 ##### address
 
 * a state variable can be declared as the type `address`, a 160-bit value that does not allow arithmetic operations.
-* here are its atrributes:
+* here are its attributes:
 	* `address.balance`: balance of the address, in wei. 
 	* `address.transfer(__amount__)`: transfers the amount (in wei) to this address, throwing an exception on any error.
 	* `address.send(__amount__)`: similar to transfer, only instead of throwing an exception, it returns false on error. WARNING: always check the return value of send.
@@ -336,7 +336,7 @@ contract A {
 
 * `addmod`, `mulmod`: for modulo addition and multiplication. for example, `addmod(x,y,k)` calculates `(x + y) % k`.
 * `keccak256`, `sha256`, `sha3`, `ripemd160`: calculate hashes with various standard hash algorithms.
-	* some keccak256 is use cases are: to create a deterministic unique ID from a input, for commit-reveal schemes, for compact cryptographic signature (by signing the hash instead of a larger input)
+	* some keccak256 use cases are: to create a deterministic unique ID from a input, for commit-reveal schemes, for compact cryptographic signature (by signing the hash instead of a larger input)
 
 <br>
 
@@ -403,7 +403,7 @@ contract GuessTheMagicWord {
 	- scoping: variables are visible from the point right after their declaration until the end of the smallest {}-block that contains the declaration.
 	- the good ol' value types (passed by value, so they are always copied to the stack) and reference types (references to the same underlying variable).
 	- however, a variable that is declared will have an initial default value whose byte-representation is all zeros.
-	- int and uint integers, with `uint8` to `uint256` in step of `8`.
+	- int and uint integers, with `uint8` to `uint256` in the step of `8`.
 
 * from being statically-typed:
 	- the type of each variable (local and state) needs to be specified at compile-time (as opposed to runtime).
@@ -426,7 +426,7 @@ contract GuessTheMagicWord {
 * **pragmas** directives are used to enable certain compiler features and checks. 
 * version Pragma indicates the specific solidity compiler version.
 * it does not change the version of the compiler, though. you will get an error if it does not match the compiler.
-* the best-practices for layout in a contract are:
+* the best practices for layout in a contract are:
 
 ```
 	1. state variables
@@ -470,7 +470,7 @@ contract GuessTheMagicWord {
 * **events** are an abstraction on top of EVM's logging, allowing clients to react to specific contract changes.
 * emitting events cause the arguments to be stored in the transaction's log (which are associated with the address of the contract).
 * contracts cannot access log data after it has been created, but they can be efficiently accessed from outside the blockchain (e.g., through bloom filters).
-* some use cases for events are: listening for events adn updating user interface or a cheap form of storage.
+* some use cases for events are: listening for events and updating user interface or a cheap form of storage.
 * events are especially useful for light clients and DApp services, which can "watch" for specific events and report them to the user interface, or make a change in the state of the application to reflect an event in an underlying contract.
 * events are created with `event` and emitted with `emit`. for example, an example can be created with:
 
@@ -499,7 +499,7 @@ emit Sent(msg.sender, receiver, amount)
   	* global: provides information about the blockchain (e.g., `block.timestamp` or `msg.sender`). 
 
 * in terms of the location of the data, variables are declared as either:
-	* storage: variable is a state variable (store on blockchain).
+	* storage: variable is a state variable (stored on the blockchain).
  		* solidity storage is an array of length `2^256`.
      		* each slot in the array can store 32 bytes.
        		* order of declaration and the type of state variables define which slots it will use, unless you use assembly, then you can write to any slot. 
@@ -550,7 +550,7 @@ contract DataLocations {
 
 ####  uint 
 
-* `uint` stands for unsigned integer, meaning non negative integers
+* `uint` stands for unsigned integer, meaning non-negative integers
 * different sizes are available:
 	* `uint8` ranges from `0 to 2 ** 8 - 1`
   	* `uint16` ranges from `0 to 2 ** 16 - 1`
@@ -578,7 +578,7 @@ contract Array {
     // Several ways to initialize an array
     uint[] public arr;
     uint[] public arr2 = [1, 2, 3];
-    // Fixed sized array, all elements initialize to 0
+    // Fixed sized array, all elements initialized to 0
     uint[10] public myFixedSizeArr;
 
     function get(uint i) public view returns (uint) {
@@ -785,9 +785,9 @@ contract Enum {
 <br>
 
 * `structs` are custom-defined types that can group several variables of same/different types together to create a custom data structure.
-* they are a type byt also just a template (they need to be declared somewhere else such as a mapping or somthing to instantiate the actual variable).
-* you can define your own type by creating a `struct`, and they are usful for grouping together related data.
-* structs can be declared outside of a contract and imported in another contract.
+* they are a type `byte` also just a template (they need to be declared somewhere else such as a mapping or somtehing to instantiate the actual variable).
+* you can define your own type by creating a `struct`, and they are useful for grouping together related data.
+* structs can be declared outside of a contract and imported into another contract.
 
 ```
 contract Todos {
@@ -902,9 +902,9 @@ function destroy() public onlyOwner {
 * `internal`:
 	* can only be accessed internally from within the current contracts (or contracts deriving from it with `internal` function).
 * `private`:
-	* can only be accessed from the contract where the fucncion is defined (not in derived contracts).
+	* can only be accessed from the contract where the function is defined (not in derived contracts).
 * `payable`:
-	* can accept incoming ethere payments.
+	* can accept incoming ether payments.
  	* functions not declared as payable will reject incoming payments.
   	* there are two exceptions, due to design decisions in the EVM: coinbase payments and `SELFDESTRUCT` inheritance will be paid even if the fallback function is not declared as payable.
 
@@ -1076,7 +1076,7 @@ contract E is X, Y {
  	* `send` (2300 gas, returns bool)
   	* `call` (forwards all gas or ser gas, returns bool), should be used with re-entrancy guard (i.e., by making all state changes before calling other contracts, and by using re-entrancy guard modifier)
  
-* a contract receiving ether must have a tleast of the functions below:
+* a contract receiving ether must have at least of the functions below:
 	* `receive() external payable`, called if `msg.data` is empty, otherwise `fallback()` is called
  	* `fallback() external payable`
 <br>
@@ -1241,7 +1241,7 @@ contract TestFallbackInputOutput {
 
 #### calldata
 
-* a called contract receive a freshly cleared instance of memory and has access to the call payload, provided in a separated area called the **calldata**.
+* a called contract receive a freshly cleared instance of memory and has access to the call payload, provided in a separate area called the **calldata**.
 * after it finishes execution, it can return data which will be stored at a location in the caller's memory preallocated by the caller.
 * opcodes include: `CALLDATASIZE` (get size of tx data), `CALLDATALOAD` (loads 32 byte of tx data onto the stack), `CALLDATACOPY` (copies the number of bytes of the tx data to memory).
 * there are also the inline assembly versions: `calldatasize`, `calldataload`, calldatacopy`.
@@ -1477,7 +1477,7 @@ error InsufficientBalance(uint requested, uint available);
 * you can throw an error by calling:
 	- `assert()`: used to check for code that should never be false. causes a panic error and reverts if the condition is not met.
 	- `require()`: used to validate inputs and conditions before execution. reverts if the condition is not met.
-	- `revert()`: similar to rquire. abort execution and revert state changes.
+	- `revert()`: similar to require. abort execution and revert state changes.
 
 <br>
 
@@ -1788,8 +1788,8 @@ contract F is A, B {
 #### shadowing inherited state variables
 
 
-* unlike functions, state variables cannot be overriden by re-declaring in the child contract.
-* this is how inherited state variables can be overriden:
+* unlike functions, state variables cannot be overridden by re-declaring in the child contract.
+* this is how inherited state variables can be overridden:
 
 <br>
 
