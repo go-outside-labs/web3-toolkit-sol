@@ -189,7 +189,7 @@ contract DataLocations {
 * in addition, solidity exposes a **[number of EVM opcodes](https://ethereum.org/en/developers/docs/evm/opcodes/)** as predefined functions.
 * all instructions operate on the basic data type, `256-bit` words or on slices of memory (and other byte arrays).
 * the usual arithmetic, bit, logical, and comparison operations are present, and conditional and unconditional jumps are possible.
-* [list of precompiled contracts](https://www.evm.codes/precompiled?fork=arrowGlacier)
+* **[list of precompiled contracts](https://www.evm.codes/precompiled?fork=arrowGlacier).**
 
 
 <br>
