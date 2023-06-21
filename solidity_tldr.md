@@ -2,7 +2,7 @@
 
 <br>
 
-#### ✨ *a smart contract is a collection of code (functions) and data (state) on the ethereum blockchain.*
+### ✨ *a smart contract is a collection of code (functions) and data (state) on the ethereum blockchain.* ✨
 
 <br>
 
@@ -53,7 +53,7 @@
  	* a **balance**: in wei, where `1 ether` = `10**18 wei`.
   	* a **nonce**: number of transactions made by the account.
   	* a **bytecode**: merkle root hash of the entire state tree.
-  	* **stored data**: a key-value mapping 256-bit words to 256-bit words (i.e., keccak hash of the root node of the storage trie).
+  	* **stored data**: a key-value mapping 256-bit words to 256-bit words (*i.e.*, `keccak` hash of the root node of the storage trie).
 
 <br>
 
@@ -85,62 +85,6 @@
 * the `new` keyword supports `CREATE2` feature by specifying `salt` options.
 * the data sent is executed as bytecode, initializing the state variables in storage and determining the body of the contract being created.
 * **contract memory** is a byte array, where data can be stored in `32 bytes (256 bit)` or `1 byte (8 bit)` chunks, reading in `32 bytes` chunks (through `MSTORE`, `MLOAD`, `MSTORE8`).
-
-<br>
-
-```
-contract Car {
-    address public owner;
-    string public model;
-    address public carAddr;
-
-    constructor(address _owner, string memory _model) payable {
-        owner = _owner;
-        model = _model;
-        carAddr = address(this);
-    }
-}
-
-contract CarFactory {
-    Car[] public cars;
-
-    function create(address _owner, string memory _model) public {
-        Car car = new Car(_owner, _model);
-        cars.push(car);
-    }
-
-    function createAndSendEther(address _owner, string memory _model) public payable {
-        Car car = (new Car){value: msg.value}(_owner, _model);
-        cars.push(car);
-    }
-
-    function create2(address _owner, string memory _model, bytes32 _salt) public {
-        Car car = (new Car){salt: _salt}(_owner, _model);
-        cars.push(car);
-    }
-
-    function create2AndSendEther(
-        address _owner,
-        string memory _model,
-        bytes32 _salt
-    ) public payable {
-        Car car = (new Car){value: msg.value, salt: _salt}(_owner, _model);
-        cars.push(car);
-    }
-
-    function getCar(
-        uint _index
-    )
-        public
-        view
-        returns (address owner, string memory model, address carAddr, uint balance)
-    {
-        Car car = cars[_index];
-
-        return (car.owner(), car.model(), car.carAddr(), address(car).balance);
-    }
-}
-```
 
 <br>
 
