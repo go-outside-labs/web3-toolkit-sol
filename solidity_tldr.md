@@ -934,11 +934,9 @@ contract Payable {
 
     // Function to withdraw all Ether from this contract.
     function withdraw() public {
-        // get the amount of Ether stored in this contract
         uint amount = address(this).balance;
 
-        // send all Ether to owner
-        // Owner can receive Ether since the address of owner is payable
+        // send all Ether to owner, which can receive Ether as the address of owner is payable
         (bool success, ) = owner.call{value: amount}("");
         require(success, "Failed to send Ether");
     }
