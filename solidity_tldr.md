@@ -2085,11 +2085,13 @@ assert(1 wei == 1);
 assert(1 gwei == 1e9);
 assert(1 ether == 1e18);
 ```
+
 * `gasleft()` returns gas left in the current call.
 * properties like `tx.*` and `block.*` might not be accurate when executed off-chain (not in an actual block).
 
 
 <br>
+
 ---
 
 ### final consideration and tricks
