@@ -1452,10 +1452,18 @@ contract Attack {
 
 <br>
 
-- `abi.decode`
+- `abi.decode`:
+	- `(uint a, uint[2] memory b, bytes memory c) = abi.decode(data, (uint, uint[2], bytes))` decodes the abi encoded data. 
 - `abi.encode`
-- `abi.encodePacked`
+	- `abi.encode(...)` returns `(bytes memory)` encodes stuff using padding and hence no collisions when dynamic data is involved.
+- `abi.encodePacked`:
+	- `abi.encodePacked(...)` returns `(bytes memory) does packed encoding.
+ 	- NOT be used when >2 dynamic arguments are involved due to hash collision. for instance, A, AB and AA, B give the same encoding due to no padding.
 - `abi.encodeWithSelector`
+	- `abi.encodeWithSelector(bytes4 selector, ...)` returns `(bytes memory)` same as `abi.encode` but prepends the selector.
+ 	- this is useful when doing raw txns, selector is used to specify function signature. 
+- abi.encodeCall
+	- `abi.encodeCall(functionPointer, ...)` returns `(byte memory)`, the same as above but a function pointer is passed.
 - `abi.encodeWithSignature`
 
 <br>
