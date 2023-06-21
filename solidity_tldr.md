@@ -13,7 +13,7 @@
 
 <br>
 
-* the evm is a stack machine (not a register machine), so all computations are performed on the stack data area.
+* the evm is a **stack machine** (not a register machine), so that all computations are performed on the stack data area.
 * the stack has a maximum size of `1024` elements and contains words of `256` bits.
 * access to the stack is limited to the top end (topmost 16 elements to the top of the stack)
 
@@ -26,8 +26,8 @@
 
 <br>
 
-* gas is a unit of computation. each transaction is charged with some gas that has to be paid for by the originator (`tx.origin`).
-* gas spent is the total amount of gas used in a transaction. if the gas is used up at any point, an out-of-gas exception is triggered, ending execution and reverting all modifications made to the state in the current call frame.
+* gas is a **unit of computation**: each transaction is charged with some gas that has to be paid for by the originator (`tx.origin`).
+* **gas spent** is the total amount of gas used in a transaction. if the gas is used up at any point, an out-of-gas exception is triggered, ending execution and reverting all modifications made to the state in the current call frame.
 * since each block has a maximum amount of gas, it also limits the amount of work needed to validate a block.
 * gas price is how much ether you are willing to pay for gas. it's set by the originator of the transaction, who has to pay `gas_price * gas` upfront to the EVM executor. any gas left is refunded to the transaction originator. exceptions that revert changes do not refund gas.
 * there are two upper bounds for the amount of gas you can spend:
@@ -310,10 +310,13 @@ contract A {
 
 ##### block
 
-* `block.coinbase`: address of the recipient of the current block's fees and block reward.
+* `block.coinbase`:
+	* address of the recipient of the current block's fees and block reward.
+ 	* it's `payable`. 
 * `block.gaslimit`: maximum amount of gas that can be spent across all transactions included in the current block.
 * `block.number`: current block number (blockchain height).
-* `block.timestamp`: timestamp placed in the current block by the miner (number of seconds since the Unix epoch
+* `block.timestamp`:
+	* timestamp placed in the current block by the miner (number of seconds since the Unix epoch).
 * `block.chainid`
 
 
@@ -1386,17 +1389,9 @@ contract Token is Mortal {
 <br>
 
 * you cannot rely on `block.timestamp` or `blockhash` as a source of randomness.
+* here is a snippet of an attack:
 
-```
-/*
-NOTE: cannot use blockhash in Remix so use ganache-cli
-
-npm i -g ganache-cli
-ganache-cli
-In remix switch environment to Web3 provider
-*/
-
-/*
+```/*
 GuessTheRandomNumber is a game where you win 1 Ether if you can guess the
 pseudo random number generated from block hash and timestamp.
 
@@ -2012,6 +2007,17 @@ contract AbiDecode {
    	2. recover signed from signature and hash
    	3. compare recovered signed to claimed signer
 
+* `erecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s) returns (address)` and can be used to verify a signature:
+	* this will return an `address` of who signed the signature.
+  	* `r` is the first 32 bytes of signature
+  	* `s` is the second 32 bytes of the signature
+  	* `v` is the final ` byte of the signature
+  	* the `hash` is the hash of the message the user has signed, with this format:
+```
+hashToBeSuppliedToEcrecover = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n",len(_message), keccak256(_message)));
+```
+ 
+
 <br>
 
 ```
@@ -2125,6 +2131,24 @@ contract VerifySignature {
 
 <br>
 
+---
+
+### global units
+
+<br>
+
+* `ether`, `wei`, `gwei` are global keywods:
+
+```
+assert(1 wei == 1);
+assert(1 gwei == 1e9);
+assert(1 ether == 1e18);
+```
+* `gasleft()` returns gas left in the current call.
+* properties like `tx.*` and `block.*` might not be accurate when executed off-chain (not in an actual block).
+
+
+<br>
 ---
 
 ### final consideration and tricks
