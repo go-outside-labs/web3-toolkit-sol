@@ -4,9 +4,6 @@
 <br>
 
 
-### 🧰 dirs in this repo
-
-<br>
 
 ###### basic
 
