@@ -291,5 +291,5 @@ contract UncheckedMath {
 * **[awesome solidity gas optimization](https://github.com/iskdrews/awesome-solidity-gas-optimization)**
 * **[mev-toolkit resources](https://github.com/go-outside-labs/mev-toolkit/tree/main/MEV_searchers/code_resources/gas_optimization)**
 * **[how gas optimization can streamline smart contracts](https://medium.com/@ayomilk1/maximizing-efficiency-how-gas-optimization-can-streamline-your-smart-contracts-4bafcc6bf321)**
-
+* **[math, solidity & gas optimizations | part 1/3](https://officercia.mirror.xyz/vtVVxbV35ETiBGxm-IpcFPcsK2_ZkL7vgiiGUkeSsP0)**
 
