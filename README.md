@@ -12,6 +12,8 @@
 * **[boilerplates](basic_knowledge/boilerplates)**
 * **[foundry](basic_knowledge/foundry)**
 
+<br>
+
 ###### advanced
 
 * **[applications contracts](advanced_knowledge/applications_contracts)**
@@ -26,7 +28,11 @@
 * **[wallets](advanced_knowledge/wallets)**
 * **[events](advanced_knowledge/events)**
 
+<br>
 
+##### checkout
+
+* **[my ethernaut solutions and writeups in foundry](https://github.com/go-outside-labs/ethernaut-foundry-writeups-sol)**
 
   
 <br>
