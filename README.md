@@ -1,9 +1,11 @@
-## 🥷🏻🛵⛓️ playing pvp in the metaweb: solidity edition
+## 🥷🏻🛵⛓️ web3-toolkit, solidity version
 
 
 <br>
 
+### directories
 
+<br>
 
 ###### basic
 
@@ -12,7 +14,6 @@
 * **[boilerplates](basic_knowledge/boilerplates)**
 * **[foundry](basic_knowledge/foundry)**
 
-<br>
 
 ###### advanced
 
@@ -28,11 +29,11 @@
 * **[wallets](advanced_knowledge/wallets)**
 * **[events](advanced_knowledge/events)**
 
-<br>
 
-##### checkout
+###### my research
 
 * **[my ethernaut solutions and writeups in foundry](https://github.com/go-outside-labs/ethernaut-foundry-writeups-sol)**
+* **[on some of my favorite openzeppelin smart contracts](https://mirror.xyz/go-outside.eth/7Q5DK8cZNZ5CP6ThJjEithPvjgckA24D2wb-j0Ps5-I)**
 
   
 <br>
