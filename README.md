@@ -7,16 +7,10 @@
 
 <br>
 
-###### basic
-
 * **start with [solidity tl; dr](solidity_tldr.md)**
 * **[your workspace](basic_knowledge/workspace)**
 * **[boilerplates](basic_knowledge/boilerplates)**
 * **[foundry](basic_knowledge/foundry)**
-
-
-###### advanced
-
 * **[applications contracts](advanced_knowledge/applications_contracts)**
 * **[tokens standard](advanced_knowledge/token_standards)**
 * **[vulnerabilities](https://github.com/go-outside-labs/blockchain-auditing/tree/main/advanced_expert/vulnerabilities)**
