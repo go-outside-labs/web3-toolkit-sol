@@ -12,7 +12,7 @@
    - static variables: the encoded representation of `uint`, `address`, `bool`, `bytes`, `tuples`
    - dynamics variables: non-fixed-size types: `bytes`, `string`, dynamic and fixed arrays `<T>[]`
 
-* opcodes are 1 byte in length, leading to 256 different possible opcodes. the EVM only uses 140 opcodes.
+* opcodes are `1 byte` in length, leading to `256` different possible opcodes. the EVM only uses `140` opcodes.
 
 <br>
 
@@ -22,10 +22,10 @@
 
 <br>
 
-* [dedaub](https://library.dedaub.com/)
-* [ethervm.io](https://ethervm.io/decompile)
-* [panoramix](https://github.com/eveem-org/panoramix)
-* [froundry's cast with --debug](https://book.getfoundry.sh/cast/index.html)
+* **[dedaub](https://library.dedaub.com/)**
+* **[ethervm.io](https://ethervm.io/decompile)**
+* **[panoramix](https://github.com/eveem-org/panoramix)**
+* **[froundry's cast with --debug](https://book.getfoundry.sh/cast/index.html)**
 
 
 <br>
@@ -37,6 +37,6 @@
 
 <br>
 
-* [mev memoirs in the arena part 1, by noxx](https://noxx.substack.com/p/mev-memoirs-into-the-arena-chapter?s=r)
-* [mev memoirs in the arena part 2, by noxx](https://noxx.substack.com/p/mev-memoirs-into-the-arena-chapter-3e9)
-* [ethereum tx enconding and legacy encoding](https://hoangtrinhj.com/articles/ethereum-transaction-encoding)
+* **[mev memoirs in the arena part 1, by noxx](https://noxx.substack.com/p/mev-memoirs-into-the-arena-chapter?s=r)**
+* **[mev memoirs in the arena part 2, by noxx](https://noxx.substack.com/p/mev-memoirs-into-the-arena-chapter-3e9)**
+* **[ethereum tx enconding and legacy encoding](https://hoangtrinhj.com/articles/ethereum-transaction-encoding)**
