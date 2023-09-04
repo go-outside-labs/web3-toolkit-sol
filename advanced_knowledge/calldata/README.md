@@ -2,10 +2,6 @@
 
 <br>
 
-### tl; dr
-
-<br>
-
 * calldata is the encoded parameter(s) sent on functions by smart contracts to the evm (for example, through `abi.econde()`,`abi.econcdeWithSelector() for a particular interfaced function, or `abi.encodePacked()` for efficient dynamic variables). 
 
 * **function signature**: `selector()` generates the 4-bytes representing the method in the interface: this is how the evm knows which function is being interacted. function signatures are defined as the first four bytes of the Keccak hash of the canonical representation of the function signature.
