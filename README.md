@@ -11,7 +11,7 @@
 * **[your workspace](basic_knowledge/workspace)**
 * **[boilerplates](basic_knowledge/boilerplates)**
 * **[tokens standard](basic_knowledge/token_standards)**
-* **[bitwise](basic_knowledge/bitwise)**
+* **[bitwise](basic_knowledge/bitwise.md)**
 * **[applications contracts](advanced_knowledge/applications_contracts)**
 * **[merkle_trees](advanced_knowledge/merkle_trees)**
 * **[saving gas](advanced_knowledge/saving_gas)**
