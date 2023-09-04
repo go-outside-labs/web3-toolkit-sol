@@ -1,9 +1,9 @@
-## 🥷🏻🛵⛓️ [WIP] web3-toolkit, solidity version
+## 🥷🏻🛵⛓️ web3 starting kit, solidity edition
 
 
 <br>
 
-### directories
+### learning notes
 
 <br>
 
@@ -23,11 +23,25 @@
 * **[wallets](advanced_knowledge/wallets)**
 * **[events](advanced_knowledge/events)**
 
+<br>
 
-###### my research
+---
+
+### go-outside-labs resources
+
+<br>
 
 * **[my ethernaut solutions and writeups in foundry](https://github.com/go-outside-labs/ethernaut-foundry-writeups-sol)**
 * **[on some of my favorite openzeppelin smart contracts](https://mirror.xyz/go-outside.eth/7Q5DK8cZNZ5CP6ThJjEithPvjgckA24D2wb-j0Ps5-I)**
+* **[or any mirror post from go-outside-labs](https://mirror.xyz/go-outside.eth)**
+* **[blockchain auditing](https://github.com/go-outside-labs/blockchain-auditing)**
+* **[blockchain-science-py](https://github.com/go-outside-labs/blockchain-science-py)**
+* **[blockchain-science-rs](https://github.com/go-outside-labs/blockchain-science-rs)**
+* **[web3-toolkit-rs](https://github.com/go-outside-labs/web3-toolkit-rs)**
+* **[aam-arb-toolkit-py](https://github.com/go-outside-labs/amm-arb-toolkit-py)**
+* **[mev-toolkit](https://github.com/go-outside-labs/mev-toolkit)**
+* **[searcher-cowswap-py](https://github.com/go-outside-labs/searcher-cowswap-py)**
+* **[generative storytelling](https://github.com/go-outside-labs/generative-sol)**
 
   
 <br>
