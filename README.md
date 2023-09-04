@@ -31,9 +31,8 @@
 
 <br>
 
-* **[my ethernaut solutions and writeups in foundry](https://github.com/go-outside-labs/ethernaut-foundry-writeups-sol)**
-* **[on some of my favorite openzeppelin smart contracts](https://mirror.xyz/go-outside.eth/7Q5DK8cZNZ5CP6ThJjEithPvjgckA24D2wb-j0Ps5-I)**
-* **[or any mirror post from go-outside-labs](https://mirror.xyz/go-outside.eth)**
+* **[ethernaut solutions and writeups in foundry](https://github.com/go-outside-labs/ethernaut-foundry-writeups-sol)**
+* **[any mirror post from go-outside-labs](https://mirror.xyz/go-outside.eth)**
 * **[blockchain auditing](https://github.com/go-outside-labs/blockchain-auditing)**
 * **[blockchain-science-py](https://github.com/go-outside-labs/blockchain-science-py)**
 * **[blockchain-science-rs](https://github.com/go-outside-labs/blockchain-science-rs)**
@@ -77,4 +76,5 @@
 
 ###### advanced readings
 
+* **[on some of my favorite openzeppelin smart contracts](https://mirror.xyz/go-outside.eth/7Q5DK8cZNZ5CP6ThJjEithPvjgckA24D2wb-j0Ps5-I)**
 * **[reusable properties for ethereum contracts, by trailofbits](https://blog.trailofbits.com/2023/02/27/reusable-properties-ethereum-contracts-echidna/)**
