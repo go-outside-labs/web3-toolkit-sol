@@ -13,7 +13,6 @@
 * **[tokens standard](basic_knowledge/token_standards)**
 * **[applications contracts](advanced_knowledge/applications_contracts)**
 * **[merkle_trees](advanced_knowledge/merkle_trees)**
-* **[abi encoding](advanced_knowledge/abi_encoding)**
 * **[saving gas](advanced_knowledge/saving_gas)**
 * **[calldata](advanced_knowledge/calldata)**
 * **[proxies](advanced_knowledge/proxies)**
