@@ -1,7 +1,7 @@
 ## get started with hardhat + erc721
 
 
-1. Compile contract:
+1. ompile contract:
 
 ```
 npx hardhat compile
