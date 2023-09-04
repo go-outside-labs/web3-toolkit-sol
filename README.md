@@ -7,7 +7,7 @@
 
 <br>
 
-* **start with [solidity tl; dr](basic_knowledge/solidity_tldr.md)**
+* **start with [solidity tl; dr](basic_knowledge)**
 * **[your workspace](basic_knowledge/workspace)**
 * **[boilerplates](basic_knowledge/boilerplates)**
 * **[applications contracts](advanced_knowledge/applications_contracts)**
