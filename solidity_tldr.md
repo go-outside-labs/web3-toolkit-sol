@@ -1,4 +1,4 @@
-## solidity tl;dr
+## 👾 solidity tl;dr
 
 <br>
 
@@ -14,14 +14,15 @@
 <br>
 
 * the evm is a **stack machine** (not a register machine), so that all computations are performed on the stack data area.
-* the stack has a maximum size of `1024` elements and contains words of `256` bits.
+* the stack has a maximum size of `1024` elements and contains words of `256-bits1.
 * access to the stack is limited to the top end (topmost 16 elements to the top of the stack)
 
 
 <br>
 
+---
 
-#### gas
+### gas
 
 <br>
 
@@ -39,9 +40,9 @@
 
 <br>
 
+---
 
-
-#### accounts
+### accounts
 
 <br>
 
@@ -55,8 +56,9 @@
 
 <br>
 
+---
 
-#### transactions
+### transactions
 
 <br>
 
@@ -66,19 +68,14 @@
 * a transaction can include **binary data (payload)** and **ether**.
 * if the **target account contains code**, that **code is executed and the payload is provided as input data**.
 * if the **target account is not set** (*e.g.*, the transaction does not have a recipient or the recipient is set to `null`), the **transaction creates a new contract**.
-* the address of a new contract is not the zero address, but an **address derived from the sender and its nonce**.
+	* the address of a new contract is not the zero address, but an **address derived from the sender and its nonce**.
 * the output data of the contract execution is stored as the code contract, *i.e.*, to create a contract, **you don't send the actual code of the contract, but instead a code that returns the code when executed**.
 
 <br>
 
 ------
 
-### solidity basics
-
-<br>
-
-
-#### solidity vs. other languages
+### solidity vs. other languages
 
 <br>
 
@@ -103,7 +100,9 @@
 
 <br>
 
-#### best practices for layout in a contract
+---
+
+### best practices for layout in a contract
 
 <br>
 
@@ -115,7 +114,10 @@
 
 <br>
 
-#### variable scopes
+
+---
+
+### variable scopes
 
 <br>
 
@@ -126,7 +128,9 @@
 <br>
 
 
-#### variables location
+---
+
+### variables location
 
 <br>
 
@@ -135,66 +139,31 @@
  		* solidity storage is an array of length `2^256`.
      		* each slot in the array can store 32 bytes.
        		* order of declaration and the type of state variables define which slots it will use, unless you use assembly, then you can write to any slot. 
-	* **memory**: variable is in memory and it exists while a function is being called.
-	* **calldata**: special data location that contains function arguments.
+	* **memory**: byte-array memory (RAM), used to store data during execution (such as passing arguments to internal functions). opcodes are `MSTORE`, `MLOAD`, or `MSTORE8`.
+	* **calldata**: a read-only byte-addressable space for the data parameter of a transaction or call. unlike the stack, this data is accessed by specifying the exact byte offset and the number of bytes to read. 
+ * the required gas for disk storage is the most expensive, while storing data to stack is the cheapest.
  
 <br>
 
-```
-contract DataLocations {
-    uint[] public arr;
-    mapping(uint => address) map;
-    struct MyStruct {
-        uint foo;
-    }
-    mapping(uint => MyStruct) myStructs;
-
-    function f() public {
-        // call _f with state variables
-        _f(arr, map, myStructs[1]);
-
-        // get a struct from a mapping
-        MyStruct storage myStruct = myStructs[1];
-        // create a struct in memory
-        MyStruct memory myMemStruct = MyStruct(0);
-    }
-
-    function _f(
-        uint[] storage _arr,
-        mapping(uint => address) storage _map,
-        MyStruct storage _myStruct
-    ) internal {
-        // do something with storage variables
-    }
-
-    // You can return memory variables
-    function g(uint[] memory _arr) public returns (uint[] memory) {
-        // do something with memory array
-    }
-
-    function h(uint[] calldata _arr) external {
-        // do something with calldata array
-    }
-}
-```
-
-<br>
+-----
 
 
-#### predefined global variables and opcodes
+### predefined global variables and opcodes
 
 <br>
 
 * when a contract is executed in the EVM, it has access to a small set of global objects: `block`, `msg`, and `tx` objects.
 * in addition, solidity exposes a **[number of EVM opcodes](https://ethereum.org/en/developers/docs/evm/opcodes/)** as predefined functions.
-* all instructions operate on the basic data type, `256-bit` words or on slices of memory (and other byte arrays).
+* as we mentioned above, in the evm, all instructions operate on the basic data type, `256-bit` words or on slices of memory (and other byte arrays).
 * the usual arithmetic, bit, logical, and comparison operations are present, and conditional and unconditional jumps are possible.
 * **[list of precompiled contracts](https://www.evm.codes/precompiled?fork=arrowGlacier).**
 
 
 <br>
 
-#### `msg`
+-----
+
+### `msg`
 
 <br>
 
@@ -207,7 +176,9 @@ contract DataLocations {
 
 <br>
 
-#### `tx`
+-----
+
+### `tx`
 
 <br>
 
@@ -216,7 +187,9 @@ contract DataLocations {
 
 <br>
 
-#### `block`
+-----
+
+### `block`
 
 <br>
 
@@ -232,11 +205,13 @@ contract DataLocations {
 
 <br>
 
-#### `address`
+-----
+
+### `address`
 
 <br>
 
-* a state variable can be declared as the type `address`, a 160-bit value that does not allow arithmetic operations.
+* a state variable can be declared as the type `address`, a `160-bit` value that does not allow arithmetic operations.
 * `address` holds a `20 byte` value (the size of an ethereum address).
 * `address payable` is an address you can send ether to (while plain address not), and comes with additional members `transfer` and `send`.
 * explicit conversion from address to address payable can be done with `payable()`.
@@ -256,7 +231,9 @@ contract DataLocations {
 
 <br>
 
-#### built-in functions
+---
+
+### built-in functions
 
 * `this`:
 	* address of the currently executing contract account.
@@ -266,46 +243,6 @@ contract DataLocations {
 	* calculate hashes with various standard hash algorithms.
 * some `keccak256` use cases are:
 	* to create a deterministic unique ID from a input, for commit-reveal schemes, for compact cryptographic signature (by signing the hash instead of a larger input).
-
-<br>
-
-```
-contract HashFunction {
-    function hash(
-        string memory _text,
-        uint _num,
-        address _addr
-    ) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_text, _num, _addr));
-    }
-
-    // Example of hash collision
-    // Hash collision can occur when you pass more than one dynamic data type
-    // to abi.encodePacked. In such case, you should use abi.encode instead.
-    function collision(
-        string memory _text,
-        string memory _anotherText
-    ) public pure returns (bytes32) {
-        // encodePacked(AAA, BBB) -> AAABBB
-        // encodePacked(AA, ABBB) -> AAABBB
-        return keccak256(abi.encodePacked(_text, _anotherText));
-    }
-}
-
-contract GuessTheMagicWord {
-    bytes32 public answer =
-        0x60298f78cc0b47170ba79c10aa3851d7648bd96f2f8e46a19dbc777c36fb0c00;
-
-    // Magick word is "Solidity"
-    function guess(string memory _word) public view returns (bool) {
-        return keccak256(abi.encodePacked(_word)) == answer;
-    }
-}
-```
-
-<br>
-
-
 * `ecrecover`:
 	* recovers the address used to sign a message from the signature:
 	* `erecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s) returns (address)` and can be used to verify a signature:
@@ -317,8 +254,6 @@ contract GuessTheMagicWord {
 ```
 hashToBeSuppliedToEcrecover = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n",len(_message), keccak256(_message)));
 ```
- 
-
 * `selfdestruct(__recipient_address__)`:
 	* deletes the current contract, sending any remaining ether in the account to the recipient address (it's the only way to remove code from the blockchain, which can be via delegatecall or callcode).
  	* the `SELFDESTRUCT` opcode is going deprecated/under changes.
@@ -326,8 +261,9 @@ hashToBeSuppliedToEcrecover = keccak256(abi.encodePacked("\x19Ethereum Signed Me
 
 <br>
 
+---
 
-#### pragmas
+### pragmas
 
 <br>
 
@@ -337,9 +273,9 @@ hashToBeSuppliedToEcrecover = keccak256(abi.encodePacked("\x19Ethereum Signed Me
 
 <br>
 
+---
 
-
-#### natspec comments
+### natspec comments
 
 <br>
 
@@ -358,8 +294,9 @@ hashToBeSuppliedToEcrecover = keccak256(abi.encodePacked("\x19Ethereum Signed Me
 
 <br>
 
+---
 
-#### events
+### events
 
 <br>
 
@@ -386,7 +323,9 @@ emit Sent(msg.sender, receiver, amount)
 
 <br>
 
-####  uint 
+---
+
+###  uint 
 
 <br>
 
@@ -399,84 +338,13 @@ emit Sent(msg.sender, receiver, amount)
 
 <br>
 
+---
 
-#### arrays and byte arrays
+### arrays and byte arrays
 
 <br>
 
 * they can be two types: **fixed-sized arrays** and **dynamically-sized arrays**.
-
-<br>
-
-```
-contract Array {
-    //////////////////////////////////////// 
-    // Several ways to initialize an array.
-    //////////////////////////////////////// 
-    uint[] public arr;
-    uint[] public arr2 = [1, 2, 3];
-    // Fixed sized array, all elements initialized to 0
-    uint[10] public myFixedSizeArr;
-
-    //////////////////////////////// 
-    // Get an element in the array.
-    //////////////////////////////// 
-    function get(uint i) public view returns (uint) {
-        return arr[i];
-    }
-
-    ///////////////////////////////////////////////
-    // Arrays that can grow indefinitely in length.
-    ///////////////////////////////////////////////
-    function getArr() public view returns (uint[] memory) {
-        return arr;
-    }
-
-    ////////////////////////////////////////////////////
-    // Append to array and decrease the array len by 1.
-    ///////////////////////////////////////////////////
-    function push(uint i) public {
-        arr.push(i);
-    }
-
-    //////////////////////////////////////////////////////////////////
-    // Remove last element from array and decrease the array len by 1.
-    //////////////////////////////////////////////////////////////////
-    function pop() public {
-        // Remove last element from array
-        // This will decrease the array length by 1
-        arr.pop();
-    }
-
-    //////////////////////
-    // Get array length.
-    //////////////////////
-    function getLength() public view returns (uint) {
-        return arr.length;
-    }
-
-    //////////////////////
-    // Get array length.
-    //////////////////////
-    function remove(uint index) public {
-        // Delete does not change the array length.
-        // It resets the value at index to it's default value,
-        // in this case 0
-        delete arr[index];
-    }
-
-    ///////////////////////////////////
-    // Get an array in memory.
-    // Only fixed size can be created.
-    ///////////////////////////////////
-    function examples() external {
-        uint[] memory a = new uint[](5);
-    }
-}
-```
-
-<br>
-
 * the data type `byte` represents a sequence of bytes.
 * `bytes1`, `bytes2`, `bytes3`, ... `bytes32` hold a sequence of bytes from one to up to `32`.
 * the type `byte[]` is an array of bytes that due to padding rules, wastes `31 bytes` of space for each element, therefore it's better to use `bytes()`.
@@ -488,108 +356,23 @@ bytes1 a = 0xb5; //  [10110101]
 bytes1 b = 0x56; //  [01010110]
 ```
 
-
 <br>
 
-#### state variables
+
+---
+
+### state variables
 
 <br>
 
 * variables that can be accessed by all functions of the contract and values are **permanently stored in the contract storage.**
-
-  <br>
-
-```
-contract SimpleStorage {
-    // State variable
-    uint public num;
-
-    // You need to send a transaction to write to a state variable
-    function set(uint _num) public {
-        num = _num;
-    }
-
-    // You can read from a state variable without sending a transaction
-    function get() public view returns (uint) {
-        return num;
-    }
-}
-```
-
-<br>
-
 * state variables can be declared as `public`, `private`, or `internal`, but not `external`.
 
-
 <br>
 
-```
-contract Base {
-    // Private function can only be called
-    // - inside this contract
-    // Contracts that inherit this contract cannot call this function.
-    function privateFunc() private pure returns (string memory) {
-        return "private function called";
-    }
+---
 
-    function testPrivateFunc() public pure returns (string memory) {
-        return privateFunc();
-    }
-
-    // Internal function can be called
-    // - inside this contract
-    // - inside contracts that inherit this contract
-    function internalFunc() internal pure returns (string memory) {
-        return "internal function called";
-    }
-
-    function testInternalFunc() public pure virtual returns (string memory) {
-        return internalFunc();
-    }
-
-    // Public functions can be called
-    // - inside this contract
-    // - inside contracts that inherit this contract
-    // - by other contracts and accounts
-    function publicFunc() public pure returns (string memory) {
-        return "public function called";
-    }
-
-    // External functions can only be called
-    // - by other contracts and accounts
-    function externalFunc() external pure returns (string memory) {
-        return "external function called";
-    }
-
-    // This function will not compile since we're trying to call
-    // an external function here.
-    // function testExternalFunc() public pure returns (string memory) {
-    //     return externalFunc();
-    // }
-
-    // State variables
-    string private privateVar = "my private variable";
-    string internal internalVar = "my internal variable";
-    string public publicVar = "my public variable";
-    // State variables cannot be external so this code won't compile.
-    // string external externalVar = "my external variable";
-}
-
-contract Child is Base {
-    // Inherited contracts do not have access to private functions
-    // and state variables.
-    // function testPrivateFunc() public pure returns (string memory) {
-    //     return privateFunc();
-    // }
-
-    // Internal function call be called inside child contracts.
-    function testInternalFunc() public pure override returns (string memory) {
-        return internalFunc();
-    }
-}
-```
-
-#### what is considered modifying state
+### what is considered modifying state
 
 <br>
 
@@ -605,7 +388,9 @@ contract Child is Base {
 
 <br>
 
-#### enum
+---
+
+### enum
 
 <br>
 
@@ -626,36 +411,17 @@ contract Enum {
         Canceled
     }
 
-    // Default value is the first element listed in
-    // definition of the type, in this case "Pending"
-    Status public status;
-
-    function get() public view returns (Status) {
-        return status;
-    }
-
-    // Update status by passing uint into input
-    function set(Status _status) public {
-        status = _status;
-    }
-
-    // You can update to a specific enum like this
     function cancel() public {
         status = Status.Canceled;
     }
-
-    // delete resets the enum to its first value, 0
-    function reset() public {
-        delete status;
-    }
-}
 ```
 
 <br>
 
+---
 
 
-#### structs
+### structs
 
 <br>
 
@@ -673,51 +439,17 @@ contract Todos {
         bool completed;
     }
 
-    // An array of 'Todo' structs
     Todo[] public todos;
 
     function create(string calldata _text) public {
-        // 3 ways to initialize a struct:
-
-        // 1. calling it like a function
-        todos.push(Todo(_text, false));
-
-        // 2. key value mapping
-        todos.push(Todo({text: _text, completed: false}));
-
-        // 3. initialize an empty struct and then update it
-        Todo memory todo;
-        todo.text = _text;
-        // todo.completed initialized to false
-
         todos.push(todo);
-    }
-
-    // Solidity automatically created a getter for 'todos' so
-    // you don't actually need this function.
-    function get(uint _index) public view returns (string memory text, bool completed) {
-        Todo storage todo = todos[_index];
-        return (todo.text, todo.completed);
-    }
-
-    // update text
-    function updateText(uint _index, string calldata _text) public {
-        Todo storage todo = todos[_index];
-        todo.text = _text;
-    }
-
-    // update completed
-    function toggleCompleted(uint _index) public {
-        Todo storage todo = todos[_index];
-        todo.completed = !todo.completed;
     }
 }
 ```
 
-
-
 <br>
 
+---
 
 ### immutability
 
@@ -734,7 +466,6 @@ contract Todos {
 
 ```
 contract Immutable {
-
     address public immutable MY_ADDRESS;
     uint public immutable MY_UINT;
 
@@ -742,7 +473,6 @@ contract Immutable {
         MY_ADDRESS = msg.sender;
         MY_UINT = _someUint;
     }
-
 }
 ```
 
@@ -750,11 +480,9 @@ contract Immutable {
 
 ---
 
-### solidity functions
+### functions modifiers
 
 <br>
-
-#### functions modifiers
 
 * used to change the behavior of functions in a declarative way, so that the function's control flow continues after the "_" in the preceding modifier. 
 * the underscore followed by a semicolon is a placeholder that is replaced by the code of the function that is being modified. the modifier is "wrapped around" the modified function, placing its code in the location identified by the underscore character.
@@ -768,7 +496,12 @@ function destroy() public onlyOwner {
 
 <br>
 
-#### state visibility specifiers
+---
+
+
+### state visibility specifiers
+
+<br>
 
 * define how the methods will be accessed.
 * `public`:
@@ -787,46 +520,11 @@ function destroy() public onlyOwner {
 
 <br>
 
-```
-contract Payable {
-    // Payable address can receive Ether
-    address payable public owner;
+----
 
-    // Payable constructor can receive Ether
-    constructor() payable {
-        owner = payable(msg.sender);
-    }
-
-    // Function to deposit Ether into this contract.
-    // Call this function along with some Ether.
-    // The balance of this contract will be automatically updated.
-    function deposit() public payable {}
-
-    // Call this function along with some Ether.
-    // The function will throw an error since this function is not payable.
-    function notPayable() public {}
-
-    // Function to withdraw all Ether from this contract.
-    function withdraw() public {
-        uint amount = address(this).balance;
-
-        // send all Ether to owner, which can receive Ether as the address of owner is payable
-        (bool success, ) = owner.call{value: amount}("");
-        require(success, "Failed to send Ether");
-    }
-
-    // Function to transfer Ether from this contract to address from input
-    function transfer(address payable _to, uint _amount) public {
-        // Note that "to" is declared as payable
-        (bool success, ) = _to.call{value: _amount}("");
-        require(success, "Failed to send Ether");
-    }
-}
-```
+### function mutability specifiers
 
 <br>
-
-#### function mutability specifiers
 
 * getter functions can be declared `view` or `pure:
 	* `view` functions declares that no state will be changed.
@@ -839,7 +537,11 @@ contract Payable {
 
 <br>
 
-#### function selectors
+---
+
+### function selectors
+
+<br>
 
 * when a function is called, the function selector (represented by the first 4 bytes of `calldata`) specifies which functions to call.
 * for instance, in the example below, `call` is used to execute `transfer` on a contract at the address `addr` and the first 4 bytes returned from `abi.encondeWithSignature()` is the function selector:
@@ -867,7 +569,11 @@ contract FunctionSelector {
 
 <br>
 
-#### overloading
+---
+
+### overloading
+
+<br>
 
 * a contract can have multiple functions of the same name but with different parameter types.
 * they are matched by the arguments supplied in the function call.
@@ -875,7 +581,11 @@ contract FunctionSelector {
 
 <br>
 
-#### constructors
+---
+
+### constructors
+
+<br>
 
 * a constructor is an optional function that only run when the contract is created (it cannot be called afterwards).
 * a global variable can be the assigned to the contractor creator by attributing `msg.sender` to it.
@@ -883,61 +593,7 @@ contract FunctionSelector {
 
 <br>
 
-```
-// Base contract X
-contract X {
-    string public name;
-
-    constructor(string memory _name) {
-        name = _name;
-    }
-}
-
-// Base contract Y
-contract Y {
-    string public text;
-
-    constructor(string memory _text) {
-        text = _text;
-    }
-}
-
-// There are 2 ways to initialize parent contract with parameters.
-
-// Pass the parameters here in the inheritance list.
-contract B is X("Input to X"), Y("Input to Y") {
-
-}
-
-contract C is X, Y {
-    // Pass the parameters here in the constructor,
-    // similar to function modifiers.
-    constructor(string memory _name, string memory _text) X(_name) Y(_text) {}
-}
-
-// Parent constructors are always called in the order of inheritance
-// regardless of the order of parent contracts listed in the
-// constructor of the child contract.
-
-// Order of constructors called:
-// 1. X
-// 2. Y
-// 3. D
-contract D is X, Y {
-    constructor() X("X was called") Y("Y was called") {}
-}
-
-// Order of constructors called:
-// 1. X
-// 2. Y
-// 3. E
-contract E is X, Y {
-    constructor() Y("Y was called") X("X was called") {}
-}
-```
-
-<br>
-
+----
 
 ### error handling
 
@@ -956,104 +612,10 @@ error InsufficientBalance(uint requested, uint available);
 	- `assert()`: used to check for code that should never be false. causes a panic error and reverts if the condition is not met.
 	- `require()`: used to validate inputs and conditions before execution. reverts if the condition is not met.
 	- `revert()`: similar to require. abort execution and revert state changes.
-
-<br>
-
-```
-contract Error {
-    function testRequire(uint _i) public pure {
-        // Require should be used to validate conditions such as:
-        // - inputs
-        // - conditions before execution
-        // - return values from calls to other functions
-        require(_i > 10, "Input must be greater than 10");
-    }
-
-    function testRevert(uint _i) public pure {
-        // Revert is useful when the condition to check is complex.
-        // This code does the exact same thing as the example above
-        if (_i <= 10) {
-            revert("Input must be greater than 10");
-        }
-    }
-
-    uint public num;
-
-    function testAssert() public view {
-        // Assert should only be used to test for internal errors,
-        // and to check invariants.
-
-        // Here we assert that num is always equal to 0
-        // since it is impossible to update the value of num
-        assert(num == 0);
-    }
-```
-
-<br>
-
 * `try / catch` can only catch errors from external functions and contract creation.
 
 <br>
 
-```
-// External contract used for try / catch examples
-contract Foo {
-    address public owner;
-
-    constructor(address _owner) {
-        require(_owner != address(0), "invalid address");
-        assert(_owner != 0x0000000000000000000000000000000000000001);
-        owner = _owner;
-    }
-
-    function myFunc(uint x) public pure returns (string memory) {
-        require(x != 0, "require failed");
-        return "my func was called";
-    }
-}
-
-contract Bar {
-    event Log(string message);
-    event LogBytes(bytes data);
-
-    Foo public foo;
-
-    constructor() {
-        // This Foo contract is used for example of try catch with external call
-        foo = new Foo(msg.sender);
-    }
-
-    // Example of try / catch with external call
-    // tryCatchExternalCall(0) => Log("external call failed")
-    // tryCatchExternalCall(1) => Log("my func was called")
-    function tryCatchExternalCall(uint _i) public {
-        try foo.myFunc(_i) returns (string memory result) {
-            emit Log(result);
-        } catch {
-            emit Log("external call failed");
-        }
-    }
-
-    // Example of try / catch with contract creation
-    // tryCatchNewContract(0x0000000000000000000000000000000000000000) => Log("invalid address")
-    // tryCatchNewContract(0x0000000000000000000000000000000000000001) => LogBytes("")
-    // tryCatchNewContract(0x0000000000000000000000000000000000000002) => Log("Foo created")
-    function tryCatchNewContract(address _owner) public {
-        try new Foo(_owner) returns (Foo foo) {
-            // you can use variable foo here
-            emit Log("Foo created");
-        } catch Error(string memory reason) {
-            // catch failing revert() and require()
-            emit Log(reason);
-        } catch (bytes memory reason) {
-            // catch failing assert()
-            emit LogBytes(reason);
-        }
-    }
-}
-```
-
-<br>
 
 ----
 
@@ -1127,7 +689,11 @@ contract Loop {
 
 <br>
 
-#### restrict access
+----
+
+### restricted access
+
+<br>
 
 * check that the caller is the owner of the contract.
 
@@ -1142,7 +708,11 @@ modifier onlyOwner() {
 
 <br>
 
-#### validate inputs
+---
+
+### validating inputs
+
+<br>
 
 * check that the address passed is not in the zero address.
 
@@ -1161,7 +731,11 @@ function changeOwner(address _newOwner) public onlyOwner validAddress(_newOwner)
 
 <br>
 
-#### guard against reentrancy attack
+---
+
+### guarding against reentrancy attack
+
+<br>
 
 * prevents a function from being called while it's still executing.
 
@@ -1262,9 +836,11 @@ contract F is A, B {
 
 <br>
 
+---
 
-#### shadowing inherited state variables
+### shadowing inherited state variables
 
+<br>
 
 * unlike functions, state variables cannot be overridden by re-declaring in the child contract.
 * this is how inherited state variables can be overridden:
@@ -1298,7 +874,9 @@ contract C is A {
 
 <br>
 
-#### calling parent contracts
+---
+
+### calling parent contracts
 
 <br>
 
@@ -1307,7 +885,10 @@ contract C is A {
 
 <br>
 
-#### interfaces
+
+---
+
+### interfaces
 
 <br>
 
@@ -1371,9 +952,9 @@ contract UniswapExample {
 
 <br>
 
+---
 
-
-#### libraries
+### libraries
 
 <br>
 
@@ -1382,9 +963,11 @@ contract UniswapExample {
 
 <br>
 
+---
 
+### ABI encode and decode
 
-#### ABI encode and decode
+<br>
 
 * `abi.encode` encodes data into bytes.
 
@@ -1468,7 +1051,7 @@ contract AbiDecode {
 
 -----
 
-### solidity: sending and receiving ether
+### sending and receiving ether
 
 <br>
 
@@ -1535,7 +1118,11 @@ contract SendEther {
 
 <br>
 
-#### receive function
+---
+
+### receive function
+
+<br>
 
 * a contract can have ONE **receive** function (`receive() external payable {...}`, without the function keyword, and no arguments and no return).
 * the `external` and `payable` are the function on where ether is transfered via `send()` or `transfer()`.
@@ -1545,7 +1132,12 @@ contract SendEther {
 
 <br>
 
-#### falback function
+---
+
+
+### falback function
+
+<br>
 
 * `fallback` is a special function that is executed on a call to the contract when:
 	* a function that does not exist is called (no function match the function signature).
@@ -1604,13 +1196,21 @@ contract TestFallbackInputOutput {
 
 <br>
 
-#### transfer function
+---
+
+### transfer() function
+
+<br>
 
 * the transfer function fails if the balance of the contract is not enough or if the transfer is rejected by the receiving account.
 
 <br>
 
-#### send function
+---
+
+### send() function
+
+<br>
 
 * low-level counterpart of transfer. if the execution fails, then send returns false.
 * the return value must be checked by the caller.
@@ -1627,7 +1227,11 @@ contract TestFallbackInputOutput {
 
 <br>
 
-#### stack
+----
+
+### stack
+
+<br>
 
 * the evm operates on a virtual stack, which has a maximum size of `1024`.
 * stack items have a size of `256 bits` (the evm is a `256-bit` word machine, which facilitates keccak256 hash scheme and elliptic-curve).
@@ -1640,7 +1244,12 @@ contract TestFallbackInputOutput {
 
 <br>
 
-#### calldata
+
+---
+
+### calldata
+
+<br>
 
 * a called contract receive a freshly cleared instance of memory and has access to the call payload, provided in a separate area called the **calldata**.
 * after it finishes execution, it can return data which will be stored at a location in the caller's memory preallocated by the caller.
@@ -1656,10 +1265,14 @@ assembly {
 
 <br>
 
-#### storage
+---
+
+### storage
+
+<br>
 
 * persistent read-write word-addressable space for contracts, addressed by words.
-* storage a key-value mapping of `2**256 `slots of 32 bytes each.
+* storage a key-value mapping of `2**256 `slots of `32-bytes` each.
 * gas to save data into storage is one of the highest operations.
 * the evm opcodes are: `SLOAD` (loads a word from storage to stack), `SSTORE` (saves a word to storage).
 * it's costly to read, initialise, and modify storage.
@@ -1667,7 +1280,11 @@ assembly {
 
 <br>
 
-#### type of storages
+---
+
+### type of storages
+
+<br>
 
 * bitpack loading: storing multiple variables in a single `32-bytes` slot by ordering the byte size.
 * fixed-length arrays: takes a predetermined amount of slots.
@@ -1708,8 +1325,11 @@ contract Mapping {
 
 <br>
 
+---
 
-#### memory
+### memory
+
+<br>
 
 * the second data area of which a contract obtains a cleared instance for each message call.
 * memory is linear and can be addressed at the byte level.
@@ -1727,10 +1347,6 @@ contract Mapping {
 
 ----
 
-### solidity: speocal opcodes
-
-<br>
-
 
 ### contract creation (`CREATE2`)
 
@@ -1743,9 +1359,9 @@ contract Mapping {
 
 <br>
 
+---
 
-
-#### message calls (`CALL`)
+### message calls (`CALL`)
 
 <br>
 
@@ -1797,8 +1413,9 @@ contract Caller {
 
 <br>
 
+----
 
-#### delegate call (`DELEGATECALL`)
+### delegate call (`DELEGATECALL`)
 
 <br>
 
@@ -1851,11 +1468,9 @@ contract A {
 
 ---
 
-### solidity: calling another contract
+### call / delegatecall/ statcall
 
 <br>
-
-#### call / delegatecall/ staticall
 
 * used to interface with contracts that do not adhere to ABI, or to give more direct control over encoding.
 * they all take a single bytes memory parameter and return the success condition (as a bool) and the return data (byte memory).
@@ -1864,8 +1479,9 @@ contract A {
 
 <br>
 
+---
 
-#### creating a new instance
+### creating a new instance
 
 <br>
 
@@ -1885,7 +1501,9 @@ contract Token is Mortal {
 
 <br>
 
-#### addressing an existing instance
+---
+
+### addressing an existing instance
 
 <br>
 
@@ -1913,11 +1531,7 @@ contract Token is Mortal {
 
 ----
 
-### solidity: advanced topics 
-
-<br>
-
-#### randomness
+### randomness
 
 <br>
 
@@ -1974,9 +1588,10 @@ contract Attack {
 
 <br>
 
+---
 
 
-#### ABI encoding and decoding functions
+### ABI encoding and decoding functions
 
 <br>
 
