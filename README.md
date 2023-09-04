@@ -18,7 +18,6 @@
 * **[calldata](advanced_knowledge/calldata)**
 * **[proxies](advanced_knowledge/proxies)**
 * **[wallets](advanced_knowledge/wallets)**
-* **[events](advanced_knowledge/events)**
 
 <br>
 
