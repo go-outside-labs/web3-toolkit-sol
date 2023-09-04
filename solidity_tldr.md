@@ -1,9 +1,10 @@
-## 👾 solidity tl;dr
+## 👾 solidity (unstructured) tl;dr 
 
 <br>
 
-### ✨ *a smart contract is a collection of code (functions) and data (state) on the ethereum blockchain.* ✨
-### ✨ *the notes below are a rough unrevised overview of solidity from when i started learning it - if you have no idea about the language, it might be a resource to skim - however, you should also check the references on the first page of this repo.* ✨
+#### ✨ the notes below are a rough overview of solidity from when i started learning it - if you have no idea about the language, it might be a resource to skim - however, you should also check the references on the first page of this repo.
+
+#### ✨ a smart contract is a collection of code (functions) and data (state) on the ethereum blockchain... 
 
 <br>
 
