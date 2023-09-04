@@ -38,7 +38,7 @@
 * **[blockchain-science-py](https://github.com/go-outside-labs/blockchain-science-py)**
 * **[blockchain-science-rs](https://github.com/go-outside-labs/blockchain-science-rs)**
 * **[web3-toolkit-rs](https://github.com/go-outside-labs/web3-toolkit-rs)**
-* **[aam-arb-toolkit-py](https://github.com/go-outside-labs/amm-arb-toolkit-py)**
+* **[amm-arb-toolkit-py](https://github.com/go-outside-labs/amm-arb-toolkit-py)**
 * **[mev-toolkit](https://github.com/go-outside-labs/mev-toolkit)**
 * **[searcher-cowswap-py](https://github.com/go-outside-labs/searcher-cowswap-py)**
 * **[generative storytelling](https://github.com/go-outside-labs/generative-sol)**
