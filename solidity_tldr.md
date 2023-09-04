@@ -25,7 +25,7 @@
 
 <br>
 
-* gas is a **unit of computation**: each transaction is charged with some gas that has to be paid for by the originator (`tx.origin`).
+* gas is a **unit of computation**: each transaction is charged with some gas that has to be paid for by the originator.
 * **gas spent** is the total amount of gas used in a transaction.
 	* if the gas is used up at any point, an out-of-gas exception is triggered, ending execution and reverting all modifications made to the state in the current call frame.
 * since **each block has a maximum amount of gas**, it also limits the amount of work needed to validate a block.
