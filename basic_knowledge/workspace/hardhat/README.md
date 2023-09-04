@@ -1,19 +1,24 @@
 ## get started with hardhat + erc721
 
+<br>
 
-1. ompile contract:
+1. compile contract:
 
 ```
 npx hardhat compile
 ```
+<br>
 
-2. Deploy contract:
+
+2. deploy contract:
 
 ```
 npx hardhat run scripts/deploy-contract.js --network rinkeby
 ```
 
-3.  Mint NFT:
+<br>
+
+3.  mint NFT:
 
 ```
 node scripts/mint-nft.js
