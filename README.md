@@ -10,8 +10,8 @@
 * **start with [solidity tl; dr](basic_knowledge)**
 * **[your workspace](basic_knowledge/workspace)**
 * **[boilerplates](basic_knowledge/boilerplates)**
+* **[tokens standard](basic_knowledge/token_standards)**
 * **[applications contracts](advanced_knowledge/applications_contracts)**
-* **[tokens standard](advanced_knowledge/token_standards)**
 * **[merkle_trees](advanced_knowledge/merkle_trees)**
 * **[abi encoding](advanced_knowledge/abi_encoding)**
 * **[saving gas](advanced_knowledge/saving_gas)**
