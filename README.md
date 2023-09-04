@@ -11,12 +11,12 @@
 * **[your workspace](basic_knowledge/workspace)**
 * **[boilerplates](basic_knowledge/boilerplates)**
 * **[tokens standard](basic_knowledge/token_standards)**
+* **[bitwise](basic_knowledge/bitwise)**
 * **[applications contracts](advanced_knowledge/applications_contracts)**
 * **[merkle_trees](advanced_knowledge/merkle_trees)**
 * **[saving gas](advanced_knowledge/saving_gas)**
 * **[calldata](advanced_knowledge/calldata)**
 * **[proxies](advanced_knowledge/proxies)**
-* **[bitwise](advanced_knowledge/bitwise)**
 * **[wallets](advanced_knowledge/wallets)**
 * **[events](advanced_knowledge/events)**
 
