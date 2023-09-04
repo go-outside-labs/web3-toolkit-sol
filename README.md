@@ -16,6 +16,7 @@
 * **[merkle_trees](advanced_knowledge/merkle_trees)**
 * **[saving gas](advanced_knowledge/saving_gas)**
 * **[calldata](advanced_knowledge/calldata)**
+* **[events](advanced_knowledge/events)**
 * **[proxies](advanced_knowledge/proxies)**
 * **[wallets](advanced_knowledge/wallets)**
 
