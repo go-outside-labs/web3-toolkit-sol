@@ -3,6 +3,7 @@
 <br>
 
 ### ✨ *a smart contract is a collection of code (functions) and data (state) on the ethereum blockchain.* ✨
+### ✨ *the notes below are a rough unrevised overview of solidity from when i started learning it - if you have no idea about the language, it might be a resource to skim - however, you should also check the references on the first page of this repo.* ✨
 
 <br>
 
@@ -213,7 +214,7 @@
 
 * a state variable can be declared as the type `address`, a `160-bit` value that does not allow arithmetic operations.
 * `address` holds a `20 byte` value (the size of an ethereum address).
-* `address payable` is an address you can send ether to (while plain address not), and comes with additional members `transfer` and `send`.
+* `address payable` is an address you can send ether to (while plain address is not), and comes with additional members `transfer` and `send`.
 * explicit conversion from address to address payable can be done with `payable()`.
 * explicit conversion from or to address is allowed for `uint160`, integer literals, `byte20`, and contract types.
 * members of address type are: 
@@ -1125,7 +1126,7 @@ contract SendEther {
 <br>
 
 * a contract can have ONE **receive** function (`receive() external payable {...}`, without the function keyword, and no arguments and no return).
-* the `external` and `payable` are the function on where ether is transfered via `send()` or `transfer()`.
+* the `external` and `payable` are the functions on where ether is transfered via `send()` or `transfer()`.
 * receive is executed on a call to the contract with empty calldata.
 * receive might only rely on 2300 gas being available.
 * a contract without receive can still receive ether as a recipient of a coinbase transaction (miner block reward) or as a destination of `selfdestruct` (a contract cannot react to this ether transfer).
@@ -1335,7 +1336,7 @@ contract Mapping {
 * memory is linear and can be addressed at the byte level.
 * reads are limited to a width of `256 bit`s, while writes can be either `8 bits` or `256 bits` wide.
 * memory is expanded by a word (`256-bit`), when accessing (either reading or writing) a previously untouched memory.
-* at the time of expansion, the cost in gas must be paid - memory is more costly the large it grows, scaling quadratically.
+* at the time of expansion, the cost of gas must be paid - memory is more costly the large it grows, scaling quadratically.
 * volatile read-write byte-addressable space (store data during execution) initialized as zero.
 * the evm opcodes are `MLOAD` (loads a word into the stack), `MSTORE` (saves a word to memory), `MSTORE8` (saves a byte to memory).
 * gas costs for memory loads (`MLOADs`) are significantly cheaper in gas than `SLOADs`.
