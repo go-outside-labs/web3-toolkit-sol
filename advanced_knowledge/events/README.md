@@ -1,7 +1,5 @@
 ## events, tx, topics
 
-### tl; dr
-
 <br>
 
 * solidity provides two types of events:
@@ -9,6 +7,9 @@
   - non-anonymous (default): up to 3 topics may be indexed, since the first topic is reserved to the event signature (filter) 
 
 <br>
+
+
+---
 
 ### ethereum transactions
 
@@ -19,6 +20,3 @@
 
 <br>
 
----
-
-### resources
