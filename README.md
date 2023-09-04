@@ -7,12 +7,11 @@
 
 <br>
 
-* **start with [solidity tl; dr](solidity_tldr.md)**
+* **start with [solidity tl; dr](basic_knowledge/solidity_tldr.md)**
 * **[your workspace](basic_knowledge/workspace)**
 * **[boilerplates](basic_knowledge/boilerplates)**
 * **[applications contracts](advanced_knowledge/applications_contracts)**
 * **[tokens standard](advanced_knowledge/token_standards)**
-* **[vulnerabilities](https://github.com/go-outside-labs/blockchain-auditing/tree/main/advanced_expert/vulnerabilities)**
 * **[merkle_trees](advanced_knowledge/merkle_trees)**
 * **[abi encoding](advanced_knowledge/abi_encoding)**
 * **[saving gas](advanced_knowledge/saving_gas)**
