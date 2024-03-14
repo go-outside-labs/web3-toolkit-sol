@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "bt3gl",
+  "author": "Mia Stein",
   "license": "MIT",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
